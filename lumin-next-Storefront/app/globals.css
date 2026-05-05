@@ -1,0 +1,1165 @@
+@import url("https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@100;200;300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap");
+@import "/assets/css/bootstrap.min.css";
+@import "/assets/css/lastudioicon.css";
+@import "/assets/css/swiper-bundle.min.css";
+@import "/assets/css/glightbox.min.css";
+@import "/assets/css/nice-select2.css";
+@import "/assets/css/style.min.css";
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Keep storefront main menu links on a single row (override template flex-wrap). */
+.header__main--menu.lumin-store-nav-one-row .menu-items-list {
+  flex-wrap: nowrap !important;
+  white-space: nowrap;
+}
+
+.header__main--menu.lumin-store-nav-one-row .menu-items-list > li {
+  flex-shrink: 0;
+}
+
+/* Single-row header: search + logo + nav + icons (home / index template). */
+.lumin-header-one-row-main {
+  min-width: 0;
+}
+
+.lumin-header-nav-col {
+  min-width: 0;
+}
+
+.lumin-header-one-row-main .meta-search input {
+  max-width: 100%;
+}
+
+@media (min-width: 992px) {
+  /* Only index.html uses `header__middle`; merged single-row bar padding */
+  .header__middle .lumin-header-one-row-main {
+    margin-bottom: 0;
+  }
+}
+
+/* React SiteNavbar: search + logo + nav + icons in one row */
+.lumin-site-navbar-single-row .header__middle {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.lumin-site-navbar-single-row {
+  /* Keep navbar visible without taking content out of normal flow. */
+  position: sticky !important;
+  top: 0;
+  z-index: 1030;
+  background: #fff;
+}
+
+.lumin-page-content {
+  position: relative;
+  z-index: 1;
+}
+
+/*
+  Lumin theme: `.custom-container` caps width (e.g. 1526px) on `.container-fluid` but does not
+  set horizontal auto margins, so content stays left-aligned with dead space on the right.
+*/
+.container-fluid.custom-container {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.lumin-toast-stack {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.lumin-toast {
+  min-width: 220px;
+  max-width: 320px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.9rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
+}
+
+.lumin-toast--success {
+  background: #1f8f4f;
+}
+
+.lumin-toast--info {
+  background: #3a6ea5;
+}
+
+.lumin-toast--error {
+  background: #b84545;
+}
+
+.lumin-navbar-main-row {
+  min-height: 52px;
+}
+
+.lumin-navbar-mobile-toggle {
+  border: 0;
+  background: transparent;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: #1f1f1f;
+  padding: 0.2rem 0.4rem;
+}
+
+.lumin-navbar-mobile-panel {
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  margin-top: 0.6rem;
+  padding-top: 0.75rem;
+}
+
+.lumin-navbar-mobile-search {
+  margin-bottom: 0.7rem;
+}
+
+.lumin-navbar-mobile-suggestions {
+  margin-top: 0.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  background: #fff;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.lumin-navbar-mobile-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lumin-navbar-mobile-links li a {
+  display: block;
+  padding: 0.5rem 0.15rem;
+  color: #1f1f1f;
+  text-decoration: none;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+}
+
+.lumin-navbar-search-col {
+  width: min(200px, 24vw);
+  min-width: 140px;
+}
+
+.lumin-navbar-search-col .meta-search input {
+  max-width: 100%;
+}
+
+.lumin-navbar-logo-col img {
+  height: auto;
+  max-height: 36px;
+  width: auto;
+  max-width: min(160px, 28vw);
+}
+
+/* Nav sits between logo and icons; allow horizontal scroll instead of a second line */
+.lumin-navbar-main-row .lumin-navbar-nav-scroll {
+  justify-content: center !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.lumin-navbar-main-row .lumin-navbar-nav-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+@media (max-width: 767.98px) {
+  .lumin-navbar-logo-col img {
+    max-width: 120px;
+    max-height: 28px;
+  }
+
+  .lumin-navbar-main-row .header__main--menu {
+    display: none;
+  }
+
+  .lumin-navbar-main-row {
+    gap: 0.45rem !important;
+  }
+
+  .lumin-navbar-main-row .menu-items-list > li > a span {
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+  }
+}
+
+.card {
+  border-radius: 14px;
+  transition: all 0.25s ease;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+.card img {
+  transition: 0.3s ease;
+}
+
+.card:hover img {
+  transform: scale(1.05);
+}
+
+/* Order details: clean breadcrumb (template list class often adds attr(href) noise) */
+.lumin-order-details-page .lumin-order-breadcrumb a::after,
+.lumin-order-details-page .lumin-order-breadcrumb a::before {
+  content: none !important;
+}
+
+.lumin-order-details-page .lumin-order-breadcrumb.breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+  content: "/" !important;
+  float: none;
+  padding-right: 0.5rem;
+  color: #999;
+}
+
+.lumin-order-details-page .lumin-order-breadcrumb.breadcrumb .breadcrumb-item.active {
+  color: #494949;
+}
+
+.lumin-order-details-page .lumin-order-details-header h1,
+.lumin-order-details-page .lumin-order-details-header .h2 {
+  font-family: "Playfair Display", serif;
+}
+
+@media (min-width: 768px) {
+  .lumin-order-details-page .lumin-order-status-col {
+    border-left: 1px solid #e8e8e8;
+    padding-left: 1.5rem;
+    margin-left: auto;
+    min-width: 11rem;
+  }
+}
+
+.lumin-order-details-page .lumin-order-line-item + .lumin-order-line-item {
+  border-top: 1px solid #eee;
+}
+
+.lumin-order-details-page .lumin-order-line-item:hover {
+  background-color: #fafafa;
+}
+
+/* Tailwind — loaded after template CSS so utilities can override when needed */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Lumin `style.min.css` sets `main { display: flex; flex-wrap: wrap }` without full-width children.
+  Flex items default to shrink-to-content width, so profile / shop blocks hug the left edge.
+*/
+.lumin-page-content main {
+  display: block;
+  width: 100%;
+}
+
+/* Guard against oversized/stretched template images (notably on Home sections). */
+.lumin-page-content img {
+  max-width: 100%;
+  height: auto;
+}
+
+.lumin-page-content .my-account-tab,
+.lumin-page-content .my-account-tab .tab-content,
+.lumin-page-content .my-account-orders,
+.lumin-page-content .my-account-table.table-responsive {
+  width: 100%;
+  max-width: 100%;
+}
+
+.lumin-page-content .my-account-table .table {
+  width: 100%;
+}
+
+/* Profile orders / addresses (portal mounts): center content in the tab */
+#lumin-profile-orders-root .lumin-profile-orders-wrap,
+#lumin-profile-addresses-root .lumin-profile-addresses-wrap {
+  width: 100%;
+  max-width: min(100%, 72rem);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Template may force .badge display; honor hidden counts from lumin-count-sync.js */
+.header-mid-meta__item a .badge[hidden],
+.header-mid-meta .badge[hidden] {
+  display: none !important;
+}
+
+/* Header wishlist/cart count badges: keep centered and anchored to icon corner */
+.header-mid-meta__item li > a,
+.meta-items-list li > a,
+.meta-items-list li > button {
+  position: relative;
+}
+
+.header-mid-meta__item .badge,
+.meta-items-list .badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* Product detail (Next app route): balanced typography and actions */
+.lumin-product-page {
+  --lumin-accent: #c45c3e;
+  --lumin-text: #1a1a1a;
+  --lumin-muted: #5c5c5c;
+  background: #fff;
+}
+
+.lumin-product-page__crumb {
+  font-size: 0.8125rem;
+  color: #888;
+  margin-bottom: 1.25rem;
+}
+
+.lumin-product-page__crumb a {
+  color: #666;
+  text-decoration: none;
+}
+
+.lumin-product-page__crumb a:hover {
+  color: var(--lumin-accent);
+}
+
+.lumin-product-page__crumb-sep {
+  margin: 0 0.35rem;
+  color: #ccc;
+}
+
+.lumin-product-page__crumb-current {
+  color: #333;
+}
+
+.lumin-product-page__media-wrap {
+  width: 100%;
+  max-width: min(340px, 88vw);
+}
+
+@media (min-width: 992px) {
+  .lumin-product-page__media-wrap {
+    max-width: 380px;
+  }
+}
+
+.lumin-product-page__media {
+  border-radius: 12px;
+  background: #f4f4f4;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+}
+
+.lumin-product-page__panel {
+  max-width: 32rem;
+  padding-top: 0.25rem;
+}
+
+@media (min-width: 992px) {
+  .lumin-product-page__panel {
+    padding-left: 0;
+    max-width: 36rem;
+  }
+}
+
+.lumin-product-page__title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(1.65rem, 2.8vw, 2.35rem);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--lumin-text);
+  margin: 0 0 1rem;
+  letter-spacing: -0.02em;
+}
+
+.lumin-product-page__price-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.65rem 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.lumin-product-page__price {
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--lumin-text);
+}
+
+.lumin-product-page__price-old {
+  font-size: 1rem;
+  color: #999;
+}
+
+.lumin-product-page__desc {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--lumin-muted);
+  margin-bottom: 1.75rem;
+}
+
+.lumin-product-page__desc p:last-child {
+  margin-bottom: 0;
+}
+
+.lumin-product-page__desc img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.lumin-product-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 0.65rem;
+}
+
+.lumin-product-page__btn-primary {
+  min-width: 10.5rem;
+  padding-left: 1.35rem;
+  padding-right: 1.35rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.lumin-product-page__btn-ghost {
+  font-weight: 500;
+}
+
+.lumin-product-page__btn-wishlist {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 500;
+}
+
+.lumin-product-page__btn-wishlist-icon {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.lumin-product-page__btn-wishlist--active {
+  border-color: var(--lumin-wishlist-active, #dc2626) !important;
+  color: var(--lumin-wishlist-active, #dc2626) !important;
+  background: rgba(220, 38, 38, 0.09) !important;
+}
+
+.lumin-product-page__btn-wishlist--active .lumin-product-page__btn-wishlist-icon {
+  font-weight: 700;
+}
+
+/* Related products (product detail) */
+.lumin-related-products {
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  background: #fafafa;
+  padding-top: 2.5rem;
+  margin-top: 0.5rem;
+}
+
+.lumin-related-products__heading {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(1.25rem, 2.2vw, 1.5rem);
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+  color: #1a1a1a;
+}
+
+.lumin-related-products__card {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.lumin-related-products__card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.lumin-related-products__thumb {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.lumin-related-products__meta {
+  padding: 0.85rem 1rem 1rem;
+}
+
+.lumin-related-products__name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.35;
+  margin: 0 0 0.35rem;
+  color: #222;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.lumin-related-products__price {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.lumin-related-products__rating {
+  min-height: 1.1rem;
+}
+
+/* Product ratings (from /store/reviews aggregate) */
+.lumin-product-rating {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem 0.35rem;
+}
+
+.lumin-product-rating--compact {
+  font-size: 0.78rem;
+}
+
+.lumin-rating-stars {
+  display: inline-flex;
+  gap: 0.05rem;
+  letter-spacing: -0.12em;
+  line-height: 1;
+}
+
+.lumin-rating-stars__star {
+  color: #ccc;
+  font-size: 0.95rem;
+}
+
+.lumin-product-rating--compact .lumin-rating-stars__star {
+  font-size: 0.72rem;
+}
+
+.lumin-rating-stars__star.is-on {
+  color: #c45c3e;
+}
+
+.lumin-rating-stars__meta {
+  font-size: 0.875rem;
+}
+
+.lumin-product-rating--compact .lumin-rating-stars__meta {
+  font-size: 0.75rem;
+}
+
+/* Checkout order summary: line item + thumbnail */
+.checkout-details__order-review .lumin-checkout-line {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: left;
+}
+
+.checkout-details__order-review .lumin-checkout-line__thumb {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f0f0f0;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.checkout-details__order-review .lumin-checkout-line__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.checkout-details__order-review .lumin-checkout-line__thumb--empty {
+  background: linear-gradient(135deg, #eee 0%, #e4e4e4 100%);
+}
+
+.checkout-details__order-review .lumin-checkout-line__text {
+  min-width: 0;
+  line-height: 1.35;
+}
+
+/* Product detail: compact image + icon-only actions */
+.lumin-product-detail__image-card {
+  max-width: min(240px, 88vw);
+  padding: 0.4rem;
+  background: #fff;
+  border-radius: 0.85rem;
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.06);
+}
+
+@media (min-width: 992px) {
+  .lumin-product-detail__image-card {
+    max-width: 260px;
+  }
+}
+
+.lumin-product-detail__icon-actions {
+  margin-top: 0.25rem;
+}
+
+.lumin-icon-action-btn {
+  --lumin-accent: #c45c3e;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.lumin-icon-action-btn__inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.lumin-icon-action-btn__inner i {
+  font-size: 1.1rem;
+}
+
+.lumin-icon-action-btn__spinner {
+  display: block;
+  width: 1.05rem;
+  height: 1.05rem;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: lumin-icon-spin 0.7s linear infinite;
+}
+
+@keyframes lumin-icon-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.lumin-icon-action-btn--wishlist-active {
+  border-color: var(--lumin-wishlist-active, #dc2626) !important;
+  color: var(--lumin-wishlist-active, #dc2626) !important;
+  background: rgba(220, 38, 38, 0.09) !important;
+}
+
+/* Product grid / template: heart turns red when item is in wishlist */
+.single-product__thumbnail--meta-3 .js-quick-add-wishlist i {
+  transition: color 0.2s ease;
+}
+
+.single-product__thumbnail--meta-3 .js-quick-add-wishlist.lumin-wishlist-heart--active i {
+  color: var(--lumin-wishlist-active, #dc2626) !important;
+}
+
+.product-image-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.product-image-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+.product-info h1 {
+  font-size: 2rem;
+}
+
+@media (min-width: 992px) {
+  .product-info h1 {
+    font-size: 2.4rem;
+  }
+}
+
+/* Lumin template: remove “Follow us on” / “10% off when you sign up” strip above footer */
+.newsletter-section {
+  display: none !important;
+}
+
+/*
+  Theme sets `.js-scroll { opacity: 0 }` until `main.js` adds `.scrolled`; scroll logic can skip
+  elements in a “dead zone”, so product grids stay invisible. Keep shop cards visible.
+*/
+.shop-wrapper .single-product.js-scroll {
+  opacity: 1 !important;
+}
+
+/* Home products: prevent oversized API images from stretching card/layout */
+.product-wrapper .single-product__thumbnail--holder {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+
+.product-wrapper .single-product__thumbnail--holder img {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100%;
+  object-fit: cover;
+}
+
+/*
+  About / inner marketing templates omit pre-`scrolled` on `.js-scroll` (unlike index.html).
+  Without `.scrolled`, blocks stay at opacity 0. Force visibility for all template scroll hints here.
+*/
+.lumin-page-content .js-scroll {
+  opacity: 1 !important;
+}
+
+/* Login / Register (AccountAuth) */
+.lumin-auth {
+  --lumin-auth-accent: #c45c3e;
+  position: relative;
+  min-height: min(78vh, 52rem);
+  display: flex;
+  align-items: center;
+  padding: 2.5rem 0 3.5rem;
+}
+
+.lumin-auth__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(165deg, #faf8f6 0%, #f3f0ec 42%, #fff 100%);
+  pointer-events: none;
+}
+
+.lumin-auth__container {
+  position: relative;
+  z-index: 1;
+}
+
+.lumin-auth__card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 40px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 2rem 1.75rem 1.75rem;
+}
+
+@media (min-width: 576px) {
+  .lumin-auth__card {
+    padding: 2.35rem 2.25rem 2rem;
+  }
+}
+
+.lumin-auth__eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--lumin-auth-accent);
+  margin: 0 0 0.5rem;
+}
+
+.lumin-auth__title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(1.65rem, 3.5vw, 2rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #1a1a1a;
+  margin: 0 0 0.5rem;
+  line-height: 1.2;
+}
+
+.lumin-auth__lead {
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  margin: 0 0 1.5rem;
+}
+
+.lumin-auth__segment {
+  display: flex;
+  padding: 4px;
+  margin-bottom: 1.5rem;
+  border-radius: 12px;
+  background: #f0eeeb;
+  gap: 4px;
+}
+
+.lumin-auth__segment-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #555;
+  border-radius: 9px;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.lumin-auth__segment-btn:hover {
+  color: #222;
+}
+
+.lumin-auth__segment-btn.is-active {
+  background: #fff;
+  color: #111;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.lumin-auth__segment-btn:focus-visible {
+  outline: 2px solid var(--lumin-auth-accent);
+  outline-offset: 2px;
+}
+
+.lumin-auth__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.lumin-auth__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.lumin-auth__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.lumin-auth__input {
+  border-radius: 10px !important;
+  border: 1px solid #e0dcd6 !important;
+  padding: 0.65rem 0.85rem !important;
+  font-size: 0.9375rem;
+}
+
+.lumin-auth__input:focus {
+  border-color: rgba(196, 92, 62, 0.55) !important;
+  box-shadow: 0 0 0 3px rgba(196, 92, 62, 0.12) !important;
+}
+
+.lumin-auth__error {
+  font-size: 0.875rem;
+  color: #b42318;
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+}
+
+.lumin-auth__submit {
+  margin-top: 0.25rem;
+  border-radius: 10px !important;
+  padding: 0.7rem 1rem !important;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  background: #1a1a1a !important;
+  border: none !important;
+  color: #fff !important;
+}
+
+.lumin-auth__submit:hover:not(:disabled) {
+  background: #333 !important;
+  color: #fff !important;
+}
+
+.lumin-auth__submit:disabled {
+  opacity: 0.65;
+}
+
+.lumin-auth__footer {
+  margin-top: 1.35rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #eee;
+  line-height: 1.5;
+}
+
+.lumin-auth__linkish {
+  font-size: inherit !important;
+  font-weight: 600 !important;
+  color: var(--lumin-auth-accent) !important;
+  text-decoration: none !important;
+  vertical-align: baseline;
+}
+
+.lumin-auth__linkish:hover {
+  text-decoration: underline !important;
+  color: #a34a32 !important;
+}
+
+.lumin-auth__footer-link {
+  color: #666;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.lumin-auth__footer-link:hover {
+  color: var(--lumin-auth-accent);
+  text-decoration: underline;
+}
+
+.lumin-auth__forgot {
+  color: var(--lumin-auth-accent, #c45c3e);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.lumin-auth__forgot:hover {
+  text-decoration: underline;
+  color: #a34a32;
+}
+
+/* Order confirmation (thank-you template + OrderConfirmTemplateClient) */
+.lumin-order-confirm-section {
+  background: linear-gradient(180deg, #faf9f7 0%, #fff 18%);
+  padding-top: 2.5rem !important;
+  padding-bottom: 3rem !important;
+}
+
+.lumin-order-confirm {
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.lumin-order-confirm__notice {
+  border-radius: 12px;
+  padding: 1rem 1.15rem;
+  margin-bottom: 1.75rem !important;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.lumin-order-confirm__notice--success {
+  background: #ecfdf3;
+  border: 1px solid #bbf7d0;
+  color: #14532d;
+}
+
+.lumin-order-confirm__notice-title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  display: block;
+}
+
+.lumin-order-confirm__notice-text {
+  opacity: 0.95;
+}
+
+.lumin-order-confirm__notice--error {
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+  color: #7f1d1d;
+}
+
+.lumin-order-confirm__overview {
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 0 2rem !important;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+@media (min-width: 768px) {
+  .lumin-order-confirm__overview {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.lumin-order-confirm__overview-item {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.lumin-order-confirm__overview-item--wide {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 768px) {
+  .lumin-order-confirm__overview-item--wide {
+    grid-column: span 3;
+  }
+}
+
+.lumin-order-confirm__overview-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #888;
+}
+
+.lumin-order-confirm__overview-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  word-break: break-word;
+}
+
+.lumin-order-confirm__details {
+  margin-bottom: 2rem;
+}
+
+.lumin-order-confirm__details .thank-you-title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1.35rem;
+  margin-bottom: 1rem !important;
+}
+
+.lumin-order-confirm__table {
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 0 !important;
+}
+
+.lumin-order-confirm__table thead th {
+  background: #f6f4f1;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  color: #666;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  padding: 0.75rem 1rem !important;
+}
+
+.lumin-order-confirm__table tbody td {
+  padding: 0.85rem 1rem !important;
+  vertical-align: middle;
+  border-color: #eee !important;
+}
+
+.lumin-order-confirm__table tfoot th,
+.lumin-order-confirm__table tfoot td {
+  padding: 0.65rem 1rem !important;
+  border-color: #eee !important;
+  font-size: 0.9rem;
+}
+
+.lumin-order-confirm__tfoot-total th,
+.lumin-order-confirm__tfoot-total td {
+  background: #fafafa;
+  font-weight: 700 !important;
+  font-size: 1rem !important;
+}
+
+.lumin-order-confirm__line {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.lumin-order-confirm__line-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #f0f0f0;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.lumin-order-confirm__line-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.lumin-order-confirm__line-thumb--empty {
+  background: linear-gradient(135deg, #eee 0%, #e4e4e4 100%);
+}
+
+.lumin-order-confirm__line-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.lumin-order-confirm__line-title {
+  font-weight: 600;
+  color: #1a1a1a;
+  text-decoration: none;
+}
+
+.lumin-order-confirm__line-title:hover {
+  color: #c45c3e;
+  text-decoration: underline;
+}
+
+.lumin-order-confirm__line-qty {
+  font-size: 0.85rem;
+  color: #777;
+}
+
+.lumin-order-confirm__address-card {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  padding: 1.15rem 1.25rem 1.25rem;
+  height: 100%;
+}
+
+.lumin-order-confirm__address-card .thank-you-title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem !important;
+}
+
+.lumin-order-confirm__address {
+  font-style: normal;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: #444;
+  margin: 0 !important;
+}
+
+.lumin-order-confirm__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1.5rem 0 0;
+  justify-content: flex-start;
+}
