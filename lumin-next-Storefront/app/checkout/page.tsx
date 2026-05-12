@@ -12,7 +12,7 @@ export default async function CheckoutPage() {
   pageMarkup = await finalizeLuminTemplateMarkup(pageMarkup);
   return (
     <>
-      {renderTransformedLuminMarkup(pageMarkup)}
+      {renderTransformedLuminMarkup(pageMarkup, { disableTemplateMainJs: true })}
       <CheckoutTemplateClient />
     </>
   );

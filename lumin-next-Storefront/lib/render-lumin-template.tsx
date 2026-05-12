@@ -59,6 +59,12 @@ function applyStoreNavigation(markup: string): string {
     .replace(/<nav class="header__main--menu[^"]*">[\s\S]*?<\/nav>/i, desktopNav)
     .replace(/<nav class="navbar-mobile-menu">[\s\S]*?<\/nav>/i, mobileNav);
 
+  // Remove the demo template's fixed "Mobile Meta" bottom icon bar (search/wishlist/compare/cart).
+  // Storefront navigation already exposes these via header and dedicated pages.
+  next = next
+    .replace(/<!--\s*Mobile Meta Start\s*-->[\s\S]*?<!--\s*Mobile Meta End\s*-->\s*/i, "")
+    .replace(/<div class="mobile-meta\b[^"]*"[\s\S]*?<\/div>\s*/i, "");
+
   /* Cart icon(s): link to storefront cart; keep original icon markup inside */
   next = next.replace(
     /<button([^>]*data-bs-target="#cartSidebar"[^>]*)>([\s\S]*?)<\/button>/gi,
@@ -222,7 +228,8 @@ export async function loadLuminTemplate(templateFile: string): Promise<string> {
   }
 }
 
-export function renderTransformedLuminMarkup(pageMarkup: string) {
+export function renderTransformedLuminMarkup(pageMarkup: string, opts?: { disableTemplateMainJs?: boolean }) {
+  const disableTemplateMainJs = Boolean(opts?.disableTemplateMainJs);
   return (
     <>
       <div dangerouslySetInnerHTML={{ __html: pageMarkup }} />
@@ -231,42 +238,44 @@ export function renderTransformedLuminMarkup(pageMarkup: string) {
       <Script src="/assets/js/masonry.pkgd.min.js" strategy="afterInteractive" />
       <Script src="/assets/js/glightbox.min.js" strategy="afterInteractive" />
       <Script src="/assets/js/nice-select2.js" strategy="afterInteractive" />
-      <Script id="lumin-main-loader" strategy="afterInteractive">
-        {`
-          (function () {
-            if (window.__luminMainLoaded) return;
-            var started = false;
-            var tries = 0;
-            var maxTries = 120; // ~12s at 100ms
-            function ready() {
-              return typeof window.Swiper !== "undefined";
-            }
-            function loadMain() {
-              if (window.__luminMainLoaded || started) return;
-              if (!ready()) return;
-              started = true;
-              var script = document.createElement("script");
-              script.src = "/assets/js/main.js";
-              script.async = false;
-              script.onload = function () {
-                window.__luminMainLoaded = true;
-              };
-              script.onerror = function () {
-                started = false;
-              };
-              document.body.appendChild(script);
-            }
-            var timer = setInterval(function () {
-              tries += 1;
-              loadMain();
-              if (window.__luminMainLoaded || tries >= maxTries) {
-                clearInterval(timer);
+      {!disableTemplateMainJs ? (
+        <Script id="lumin-main-loader" strategy="afterInteractive">
+          {`
+            (function () {
+              if (window.__luminMainLoaded) return;
+              var started = false;
+              var tries = 0;
+              var maxTries = 120; // ~12s at 100ms
+              function ready() {
+                return typeof window.Swiper !== "undefined";
               }
-            }, 100);
-            loadMain();
-          })();
-        `}
-      </Script>
+              function loadMain() {
+                if (window.__luminMainLoaded || started) return;
+                if (!ready()) return;
+                started = true;
+                var script = document.createElement("script");
+                script.src = "/assets/js/main.js";
+                script.async = false;
+                script.onload = function () {
+                  window.__luminMainLoaded = true;
+                };
+                script.onerror = function () {
+                  started = false;
+                };
+                document.body.appendChild(script);
+              }
+              var timer = setInterval(function () {
+                tries += 1;
+                loadMain();
+                if (window.__luminMainLoaded || tries >= maxTries) {
+                  clearInterval(timer);
+                }
+              }, 100);
+              loadMain();
+            })();
+          `}
+        </Script>
+      ) : null}
     </>
   );
 }

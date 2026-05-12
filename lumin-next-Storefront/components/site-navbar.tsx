@@ -6,6 +6,7 @@ import Image from "next/image";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { sdk } from "@/lib/config";
+import { getAuthHeadersClient } from "@/lib/shopenup/client-cookies";
 
 const navItems = [
   { label: "Home", href: "/" },
@@ -41,6 +42,15 @@ export function SiteNavbar() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Avoid SSR/CSR hydration mismatch by not reading cookies during render.
+  // Default to /profile and then adjust after mount.
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const profileHref = isLoggedIn === false ? "/login?next=/profile" : "/profile";
+
+  useEffect(() => {
+    setIsLoggedIn("authorization" in getAuthHeadersClient());
+  }, []);
 
   useEffect(() => {
     setSearchTerm(searchParams.get("q") || "");
@@ -252,7 +262,7 @@ export function SiteNavbar() {
               <div className="header-mid-meta">
                 <ul className="header-mid-meta__item justify-content-end mb-0">
                   <li>
-                    <Link href="/profile" aria-label="Profile">
+                    <Link href={profileHref} aria-label="Profile">
                       <i className="lastudioicon-single-01-2" />
                     </Link>
                   </li>
