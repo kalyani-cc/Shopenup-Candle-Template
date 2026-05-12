@@ -9,6 +9,7 @@ import { getCompleteHeadersClient } from "@/lib/shopenup/client-cookies";
 import type { StoreCustomer } from "@/lib/types/store-customer";
 import { collectPromoCodesFromOrder } from "@/lib/shopenup/order-promo-codes";
 import { formatCurrency, formatOrderDisplayStatus } from "@/lib/utils";
+import InvoiceGenerator from "@/components/pages/invoice-generator";
 
 type Address = {
   first_name?: string | null;
@@ -233,6 +234,9 @@ export function OrderDetailsClient({ orderId }: OrderDetailsClientProps) {
                   Payment: <span className="text-capitalize">{order.payment_status}</span>
                 </p>
               ) : null}
+              <div className="mt-3 d-flex justify-content-md-end">
+                <InvoiceGenerator orderId={order.id} />
+              </div>
             </div>
           </div>
 

@@ -84,6 +84,12 @@ function isUnauthorizedError(e: unknown): boolean {
   return lower.includes("401") || lower.includes("unauthorized");
 }
 
+function isAlreadyHasWishlistError(e: unknown): boolean {
+  const msg = e instanceof Error ? e.message : String(e);
+  const lower = msg.toLowerCase();
+  return lower.includes("already has a wishlist");
+}
+
 function addGuestWishlistItemIfMissing(product: Product): void {
   if (!product.variantId) return;
   const items = readGuestWishlist();
@@ -148,6 +154,11 @@ async function ensureWishlistExists(): Promise<void> {
   } catch (e) {
     if (isUnauthorizedError(e)) {
       removeAuthToken();
+      return;
+    }
+    // Backend may respond with a 404 but message "Customer already has a wishlist".
+    // Treat that as success and fall through to GET verification.
+    if (isAlreadyHasWishlistError(e)) {
       return;
     }
     postError = e instanceof Error ? e : new Error(String(e));

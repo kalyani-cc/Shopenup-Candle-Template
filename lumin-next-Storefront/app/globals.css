@@ -292,6 +292,16 @@ body {
   width: 100%;
 }
 
+/* Profile tab panes: keep same horizontal gutters across Orders/Address/Account Detail. */
+.lumin-page-content .my-account-tab .tab-pane > .my-account-orders,
+.lumin-page-content .my-account-tab .tab-pane > .my-account-address,
+.lumin-page-content .my-account-tab .tab-pane > .my-account-detail {
+  width: 100%;
+  max-width: min(100%, 72rem);
+  margin-left: auto;
+  margin-right: auto;
+}
+
 /* Profile orders / addresses (portal mounts): center content in the tab */
 #lumin-profile-orders-root .lumin-profile-orders-wrap,
 #lumin-profile-addresses-root .lumin-profile-addresses-wrap {

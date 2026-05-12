@@ -30,6 +30,7 @@ export type StoreCart = {
   items: StoreCartItem[];
   subtotal?: number;
   discount_subtotal?: number;
+  discount_tax_total?: number;
   discount_total?: number;
   tax_total?: number;
   shipping_total?: number;
@@ -68,7 +69,7 @@ function emitToast(message: string, type: "success" | "info" | "error" = "succes
 
 /** Ask API for line thumbnails (and variant product image fallback). */
 const CART_RETRIEVE_FIELDS =
-  "id,subtotal,tax_total,shipping_total,discount_total,total,currency_code,region_id,completed_at,promotions,payment_collections," +
+  "id,subtotal,tax_total,shipping_total,discount_subtotal,discount_tax_total,discount_total,total,currency_code,region_id,completed_at,promotions,payment_collections," +
   "*items,*items.thumbnail,*items.title,*items.product_title,*items.unit_price,*items.subtotal,*items.total,*items.quantity," +
   "*items.variant,*items.variant.product.thumbnail";
 
@@ -133,19 +134,12 @@ export async function retrieveCart(): Promise<StoreCart | null> {
   }
 
   try {
-    let response: { cart: StoreCart };
-    try {
-      response = await sdk.client.fetch<{ cart: StoreCart }>(`/store/carts/${cartId}`, {
-        query: { fields: CART_RETRIEVE_FIELDS },
-        cache: "no-store",
-        headers: getCompleteHeadersClient()
-      });
-    } catch {
-      response = await sdk.client.fetch<{ cart: StoreCart }>(`/store/carts/${cartId}`, {
-        cache: "no-store",
-        headers: getCompleteHeadersClient()
-      });
-    }
+    // Some backends crash when using deep `fields=` projections (MikroORM joined filters "strategy" bug).
+    // Fetch the cart without projections for maximum compatibility.
+    const response = await sdk.client.fetch<{ cart: StoreCart }>(`/store/carts/${cartId}`, {
+      cache: "no-store",
+      headers: getCompleteHeadersClient()
+    });
     if (response.cart?.completed_at) {
       removeCartId();
       emitCartChanged();
@@ -233,9 +227,13 @@ type UpdateCartBody = {
 
 export async function updateCart(body: UpdateCartBody): Promise<StoreCart> {
   const cart = await getOrCreateCart();
+  const safeBody: UpdateCartBody = {
+    ...body,
+    promo_codes: body.promo_codes?.filter(Boolean).slice(0, 1)
+  };
   const response = await sdk.client.fetch<{ cart: StoreCart }>(`/store/carts/${cart.id}`, {
     method: "POST",
-    body,
+    body: safeBody,
     cache: "no-store",
     headers: getCompleteHeadersClient()
   });

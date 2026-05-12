@@ -1032,13 +1032,13 @@
 
                                 <!-- Contact Us Form Start -->
                                 <div class="contact-us-form">
-                                    <form action="#">
+                                    <form id="lumin-contact-form" action="#" novalidate>
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <!-- Single Form Start -->
                                                 <div class="single-form">
                                                     <label class="single-form__label">First name*</label>
-                                                    <input class="single-form__input" type="text" />
+                                                    <input class="single-form__input" type="text" name="first_name" autocomplete="given-name" />
                                                 </div>
                                                 <!-- Single Form Start -->
                                             </div>
@@ -1046,7 +1046,7 @@
                                                 <!-- Single Form Start -->
                                                 <div class="single-form">
                                                     <label class="single-form__label">Last name*</label>
-                                                    <input class="single-form__input" type="text" />
+                                                    <input class="single-form__input" type="text" name="last_name" autocomplete="family-name" />
                                                 </div>
                                                 <!-- Single Form Start -->
                                             </div>
@@ -1054,19 +1054,19 @@
                                         <!-- Single Form Start -->
                                         <div class="single-form">
                                             <label class="single-form__label">Email*</label>
-                                            <input class="single-form__input" type="email" />
+                                            <input class="single-form__input" type="email" name="email" autocomplete="email" required />
                                         </div>
                                         <!-- Single Form Start -->
                                         <!-- Single Form Start -->
                                         <div class="single-form">
                                             <label class="single-form__label">Phone Number*</label>
-                                            <input class="single-form__input" type="text" />
+                                            <input class="single-form__input" type="tel" name="phone" autocomplete="tel" />
                                         </div>
                                         <!-- Single Form Start -->
                                         <!-- Single Form Start -->
                                         <div class="single-form">
                                             <label class="single-form__label">How can we help?</label>
-                                            <textarea class="single-form__input"></textarea>
+                                            <textarea class="single-form__input" name="message" required></textarea>
                                         </div>
                                         <!-- Single Form Start -->
                                         <!-- Single Form Start -->

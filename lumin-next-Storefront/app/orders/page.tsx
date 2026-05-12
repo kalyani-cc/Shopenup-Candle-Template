@@ -1,5 +1,5 @@
-import { renderLuminTemplate } from "../../lib/render-lumin-template";
+import { notFound } from "next/navigation";
 
 export default async function OrdersPage() {
-  return renderLuminTemplate("order-tracking.html");
+  notFound();
 }

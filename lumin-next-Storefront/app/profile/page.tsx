@@ -1,6 +1,7 @@
 import { ProfileAccountDetailMount } from "@/components/pages/profile-account-detail-client";
 import { ProfileAddressesMount } from "@/components/pages/profile-addresses-client";
 import { ProfileOrdersMount } from "@/components/pages/profile-orders-client";
+import { ProfileLogoutMount } from "../../components/pages/profile-logout-client";
 import {
   finalizeLuminTemplateMarkup,
   loadLuminTemplate,
@@ -21,6 +22,22 @@ function injectProfileOrdersRoot(markup: string): string {
   return markup.replace(
     /<div class="my-account-orders">\s*<div class="my-account-table table-responsive">[\s\S]*?<\/div>\s*<\/div>\s*<!-- My Account Orders End -->/,
     '<div class="my-account-orders"><div id="lumin-profile-orders-root"></div></div>\n                            <!-- My Account Orders End -->'
+  );
+}
+
+/** Replace static addresses block with a React mount point. */
+function injectProfileAddressesRoot(markup: string): string {
+  return markup.replace(
+    /<div class="my-account-address">[\s\S]*?<\/div>\s*<!-- My Account Address End -->/i,
+    '<div class="my-account-address"><div id="lumin-profile-addresses-root"></div></div>\n                            <!-- My Account Address End -->'
+  );
+}
+
+/** Replace static logout link with a React mount point. */
+function injectProfileLogoutRoot(markup: string): string {
+  return markup.replace(
+    /<li>\s*<a class="account-btn" href="[^"]*">\s*Logout\s*<\/a>\s*<\/li>/i,
+    '<li><div id="lumin-profile-logout-root"></div></li>'
   );
 }
 
@@ -47,7 +64,9 @@ export default async function ProfilePage() {
   const html = await loadLuminTemplate("my-account.html");
   let pageMarkup = transformLuminTemplateMarkup(html);
   pageMarkup = removeDashboardAndDownloadTabs(pageMarkup);
+  pageMarkup = injectProfileLogoutRoot(pageMarkup);
   pageMarkup = injectProfileOrdersRoot(pageMarkup);
+  pageMarkup = injectProfileAddressesRoot(pageMarkup);
   pageMarkup = injectProfileAccountDetailRoot(pageMarkup);
   pageMarkup = await finalizeLuminTemplateMarkup(pageMarkup);
   return (
@@ -56,6 +75,7 @@ export default async function ProfilePage() {
       <ProfileOrdersMount />
       <ProfileAddressesMount />
       <ProfileAccountDetailMount />
+      <ProfileLogoutMount />
     </>
   );
 }

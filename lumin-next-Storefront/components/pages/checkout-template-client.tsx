@@ -241,23 +241,83 @@ export function CheckoutTemplateClient() {
     const checkoutRoot = document.querySelector(".checkout-section");
     if (!checkoutRoot) return;
 
+    // The Lumin template scripts (or previously-loaded main.js from other pages)
+    // can auto-close Bootstrap collapses. Make coupon/login panels manual so they stay open.
+    const wireManualToggle = (id: "coupon" | "login") => {
+      const panel = checkoutRoot.querySelector<HTMLElement>(`#${id}`);
+      const oldBtn = checkoutRoot.querySelector<HTMLButtonElement>(`button[data-bs-target="#${id}"]`);
+      if (!panel || !oldBtn) return;
+
+      // Replace button node to drop any pre-attached handlers.
+      const btn = oldBtn.cloneNode(true) as HTMLButtonElement;
+      oldBtn.replaceWith(btn);
+
+      // Detach from Bootstrap collapse.
+      btn.removeAttribute("data-bs-toggle");
+      btn.removeAttribute("data-bs-target");
+      btn.setAttribute("type", "button");
+      btn.setAttribute("aria-controls", id);
+
+      const apply = (open: boolean) => {
+        panel.classList.remove("collapse", "collapsing");
+        panel.classList.toggle("show", open);
+        panel.hidden = !open;
+        panel.style.display = open ? "block" : "none";
+        panel.style.height = "";
+        btn.setAttribute("aria-expanded", open ? "true" : "false");
+      };
+
+      // Start closed.
+      apply(false);
+
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        apply(panel.hidden);
+      });
+    };
+
+    wireManualToggle("coupon");
+    wireManualToggle("login");
+
+    // Strip unwanted login UI (facebook/google + remember me) without touching collapse behavior.
+    const loginPanel = checkoutRoot.querySelector<HTMLElement>("#login");
+    if (loginPanel) {
+      loginPanel.querySelectorAll(".login-register__social").forEach((el) => el.remove());
+      loginPanel.querySelectorAll("#remember").forEach((input) => input.closest(".single-form")?.remove());
+      Array.from(loginPanel.querySelectorAll("p")).forEach((p) => {
+        const t = (p.textContent || "").toLowerCase();
+        if (t.includes("login with") && t.includes("social")) {
+          p.remove();
+        }
+      });
+    }
+
     const orderTable = checkoutRoot.querySelector(".checkout-details__order-review table");
-    const tbody = orderTable?.querySelector("tbody");
+    const tbody = (orderTable?.querySelector("tbody") ?? null) as HTMLTableSectionElement | null;
     const subtotalCell = (orderTable?.querySelector(".cart-subtotal td span") || null) as Element | null;
     const totalCell = (orderTable?.querySelector(".order-total td strong span") || null) as Element | null;
-    const shippingCell = orderTable?.querySelector(".cart-shipping td[data-title='Shipping']") as Element | null;
-    const paymentWrap = checkoutRoot.querySelector(".checkout-details__payment-method .accordion");
-    const placeOrderBtn = checkoutRoot.querySelector(".checkout-details__btn .btn") as HTMLButtonElement | null;
+    const shippingCell = (orderTable?.querySelector(".cart-shipping td[data-title='Shipping']") ?? null) as Element | null;
+    const paymentWrap = (checkoutRoot.querySelector(".checkout-details__payment-method .accordion") ?? null) as Element | null;
+    const placeOrderBtn = (checkoutRoot.querySelector(".checkout-details__btn .btn") ?? null) as HTMLButtonElement | null;
     const couponInput = checkoutRoot.querySelector(".checkout-coupon-form input") as HTMLInputElement | null;
     const couponApplyBtn = checkoutRoot.querySelector(".checkout-coupon-form button") as HTMLButtonElement | null;
 
-    if (!tbody || !placeOrderBtn || !shippingCell || !paymentWrap) return;
+    if (!tbody || !placeOrderBtn || !shippingCell || !paymentWrap) {
+      return;
+    }
+
+    // From here down, these are guaranteed.
+    const tbodyEl = tbody;
+    const shippingCellEl = shippingCell;
+    const paymentWrapEl = paymentWrap;
+    const placeOrderBtnEl = placeOrderBtn;
 
     const status = document.createElement("p");
     status.style.marginTop = "12px";
     status.style.fontSize = "14px";
     status.style.color = "#b84545";
-    placeOrderBtn.parentElement?.appendChild(status);
+    placeOrderBtnEl.parentElement?.appendChild(status);
 
     let currentCart: StoreCart | null = null;
     let shippingOptions: Array<{ id: string; name?: string; amount?: number; price_type?: string }> = [];
@@ -268,12 +328,14 @@ export function CheckoutTemplateClient() {
 
     const setBusy = (value: boolean) => {
       busy = value;
-      placeOrderBtn.disabled = value;
-      placeOrderBtn.textContent = value ? "Processing..." : "Place Order";
+      placeOrderBtnEl.disabled = value;
+      placeOrderBtnEl.textContent = value ? "Processing..." : "Place Order";
       if (couponApplyBtn) {
         couponApplyBtn.disabled = value;
       }
     };
+
+    // No cleanup required for the one-time DOM removal above.
 
     const syncCheckoutSummaryRows = (cart: StoreCart | null) => {
       const tfoot = orderTable?.querySelector("tfoot");
@@ -285,18 +347,26 @@ export function CheckoutTemplateClient() {
       const codes =
         cart.promotions
           ?.map((p) => p.code?.trim())
-          .filter((c): c is string => Boolean(c)) ?? [];
+          .filter((c): c is string => Boolean(c))
+          .slice(0, 1) ?? [];
       if (codes.length) {
         const tr = document.createElement("tr");
         tr.setAttribute("data-lumin-checkout-summary", "1");
         tr.innerHTML = `<th>Promo code${codes.length > 1 ? "s" : ""}</th><td><span>${escapeHtml(codes.join(", "))}</span></td>`;
         orderTotalRow.parentNode?.insertBefore(tr, orderTotalRow);
       }
-      const disc = cart.discount_total ?? 0;
-      if (disc > 0) {
+      const discSubtotal = cart.discount_subtotal ?? cart.discount_total ?? 0;
+      const discTaxSavings = cart.discount_tax_total ?? 0;
+      if (discSubtotal > 0) {
         const tr = document.createElement("tr");
         tr.setAttribute("data-lumin-checkout-summary", "1");
-        tr.innerHTML = `<th>Discount</th><td><span>−${escapeHtml(formatCurrency(disc))}</span></td>`;
+        tr.innerHTML = `<th>Discount</th><td><span>−${escapeHtml(formatCurrency(discSubtotal))}</span></td>`;
+        orderTotalRow.parentNode?.insertBefore(tr, orderTotalRow);
+      }
+      if (discTaxSavings > 0) {
+        const tr = document.createElement("tr");
+        tr.setAttribute("data-lumin-checkout-summary", "1");
+        tr.innerHTML = `<th>Tax savings</th><td><span>−${escapeHtml(formatCurrency(discTaxSavings))}</span></td>`;
         orderTotalRow.parentNode?.insertBefore(tr, orderTotalRow);
       }
       const tax = cart.tax_total ?? 0;
@@ -311,7 +381,7 @@ export function CheckoutTemplateClient() {
     const renderCart = (cart: StoreCart | null) => {
       currentCart = cart;
       if (!cart?.items?.length) {
-        tbody.innerHTML = `<tr><td class="product-name">No items in cart.</td><td class="product-total"><span>${formatCurrency(
+        tbodyEl.innerHTML = `<tr><td class="product-name">No items in cart.</td><td class="product-total"><span>${formatCurrency(
           0
         )}</span></td></tr>`;
         setText(subtotalCell, formatCurrency(0));
@@ -320,7 +390,7 @@ export function CheckoutTemplateClient() {
         return;
       }
 
-      tbody.innerHTML = cart.items
+      tbodyEl.innerHTML = cart.items
         .map((item) => {
           const title = item.title || item.product_title || "Item";
           const qty = item.quantity || 1;
@@ -351,11 +421,11 @@ export function CheckoutTemplateClient() {
 
     const renderShipping = () => {
       if (!shippingOptions.length) {
-        shippingCell.innerHTML = `<span>No shipping options available.</span>`;
+        shippingCellEl.innerHTML = `<span>No shipping options available.</span>`;
         return;
       }
 
-      shippingCell.innerHTML = `<form action="#"><ul class="shipping-methods">${shippingOptions
+      shippingCellEl.innerHTML = `<form action="#"><ul class="shipping-methods">${shippingOptions
         .map((option, index) => {
           const id = `ship-${option.id}`;
           const checked = index === 0 ? "checked" : "";
@@ -367,10 +437,10 @@ export function CheckoutTemplateClient() {
         })
         .join("")}</ul></form>`;
 
-      const selected = shippingCell.querySelector("input[name='shippingMethod']:checked") as HTMLInputElement | null;
+      const selected = shippingCellEl.querySelector("input[name='shippingMethod']:checked") as HTMLInputElement | null;
       selectedShippingId = selected?.dataset.optionId || shippingOptions[0]?.id || "";
 
-      shippingCell.querySelectorAll("input[name='shippingMethod']").forEach((radio) => {
+      shippingCellEl.querySelectorAll("input[name='shippingMethod']").forEach((radio) => {
         radio.addEventListener("change", async (event) => {
           const target = event.currentTarget as HTMLInputElement;
           const optionId = target.dataset.optionId || "";
@@ -398,17 +468,17 @@ export function CheckoutTemplateClient() {
 
     const renderPayments = () => {
       if (!paymentProviders.length) {
-        paymentWrap.innerHTML = `<form action="#"><p class="small">No payment providers available.</p></form>`;
+        paymentWrapEl.innerHTML = `<form action="#"><p class="small">No payment providers available.</p></form>`;
         return;
       }
-      paymentWrap.innerHTML = `<form action="#">${paymentProviders
+      paymentWrapEl.innerHTML = `<form action="#">${paymentProviders
         .map((provider, index) => {
           const id = `pay-${provider.id}`;
           const checked = index === 0 ? "checked" : "";
           return `<div class="accordion-item"><div class="single-form"><input type="radio" name="payment-method" id="${id}" data-provider-id="${provider.id}" ${checked} /><label for="${id}" class="single-form__label radio-label"><span></span>${provider.id}</label></div></div>`;
         })
         .join("")}</form>`;
-      const selected = paymentWrap.querySelector("input[name='payment-method']:checked") as HTMLInputElement | null;
+      const selected = paymentWrapEl.querySelector("input[name='payment-method']:checked") as HTMLInputElement | null;
       selectedPaymentId = selected?.dataset.providerId || paymentProviders[0]?.id || "";
     };
 
@@ -470,15 +540,16 @@ export function CheckoutTemplateClient() {
     };
 
     if (countrySelect) {
-      forceNativeSelect(countrySelect);
-      countrySelect.innerHTML = COUNTRY_OPTIONS.map(
+      const countrySelectEl = countrySelect as HTMLSelectElement;
+      forceNativeSelect(countrySelectEl);
+      countrySelectEl.innerHTML = COUNTRY_OPTIONS.map(
         (country) => `<option value="${country.code}">${country.label}</option>`
       ).join("");
-      countrySelect.value = "in";
-      countrySelect.addEventListener("change", () => {
-        populateStateOptions(countrySelect.value || "in");
+      countrySelectEl.value = "in";
+      countrySelectEl.addEventListener("change", () => {
+        populateStateOptions(countrySelectEl.value || "in");
       });
-      populateStateOptions(countrySelect.value || "in");
+      populateStateOptions(countrySelectEl.value || "in");
     } else {
       populateStateOptions("in");
     }
@@ -510,10 +581,8 @@ export function CheckoutTemplateClient() {
       try {
         setBusy(true);
         status.textContent = "";
-        const existingCodes = (currentCart?.promotions || [])
-          .map((promotion) => promotion.code)
-          .filter((value): value is string => Boolean(value));
-        const updated = await updateCart({ promo_codes: [...existingCodes, code] });
+        // Only allow ONE promo code at a time: replace existing with the latest code.
+        const updated = await updateCart({ promo_codes: [code] });
         renderCart(updated);
         if (couponInput) couponInput.value = "";
         toast("Coupon applied");
@@ -554,7 +623,8 @@ export function CheckoutTemplateClient() {
 
         const promoCodesToKeep = (currentCart?.promotions || [])
           .map((p) => p.code?.trim())
-          .filter((c): c is string => Boolean(c));
+          .filter((c): c is string => Boolean(c))
+          .slice(0, 1);
 
         const updatedCart = await updateCart({
           email,
@@ -583,7 +653,7 @@ export function CheckoutTemplateClient() {
         renderCart(updatedCart);
 
         if (!selectedShippingId) {
-          const selectedShipInput = shippingCell.querySelector("input[name='shippingMethod']:checked") as HTMLInputElement | null;
+          const selectedShipInput = shippingCellEl.querySelector("input[name='shippingMethod']:checked") as HTMLInputElement | null;
           selectedShippingId = selectedShipInput?.dataset.optionId || shippingOptions[0]?.id || "";
         }
         if (selectedShippingId) {
@@ -595,7 +665,7 @@ export function CheckoutTemplateClient() {
           renderCart(cartAfterShipping);
         }
 
-        const selectedPayInput = paymentWrap.querySelector("input[name='payment-method']:checked") as HTMLInputElement | null;
+        const selectedPayInput = paymentWrapEl.querySelector("input[name='payment-method']:checked") as HTMLInputElement | null;
         selectedPaymentId = selectedPayInput?.dataset.providerId || selectedPaymentId || paymentProviders[0]?.id || "";
         if (!selectedPaymentId) {
           throw new Error("No payment method available for this cart.");
@@ -656,11 +726,11 @@ export function CheckoutTemplateClient() {
     };
 
     load().catch(() => null);
-    placeOrderBtn.addEventListener("click", onPlaceOrder);
+    placeOrderBtnEl.addEventListener("click", onPlaceOrder);
     couponApplyBtn?.addEventListener("click", onCouponApply);
 
     return () => {
-      placeOrderBtn.removeEventListener("click", onPlaceOrder);
+      placeOrderBtnEl.removeEventListener("click", onPlaceOrder);
       couponApplyBtn?.removeEventListener("click", onCouponApply);
     };
   }, []);
