@@ -1,104 +1,143 @@
-// import type { SubscriberArgs, SubscriberConfig } from "@shopenup/shopenup";
-// import { ContainerRegistrationKeys, Modules } from "@shopenup/framework/utils";
-// import type { CustomerDTO } from "@shopenup/framework/types";
-
-// export default async function sendPasswordResetNotification({
-//   event: { data },
-//   container,
-// }: SubscriberArgs<{ entity_id: string; token: string; actor_type: string }>) {
-//   const query = container.resolve(ContainerRegistrationKeys.QUERY);
-//   const notificationModuleService = container.resolve(Modules.NOTIFICATION);
-
-//   const isCustomer = data.actor_type === "customer" || data.actor_type === "logged-in-customer";
-  
-//   const fields = [
-//     "id",
-//     "email",
-//     "first_name",
-//     "last_name",
-//   ] as const satisfies (keyof CustomerDTO)[];
-
-//   const { data: customers } = await query.graph({
-//     entity: isCustomer ? "customer" : "user",
-//     fields,
-//     filters: { email: data.entity_id },
-//   });
-//   const customer = customers[0] as Pick<CustomerDTO, (typeof fields)[number]>;
-
-//   await notificationModuleService.createNotifications({
-//     to: customer.email,
-//     channel: "email",
-//     template:
-//       data.actor_type === "logged-in-customer"
-//         ? "auth-password-reset"
-//         : process.env.SENDGRID_CUSTOM_FORGET_PASSWORD_TEMP_ID,
-//     data: 
-//     { 
-//       customer, 
-//       store_name: process.env.STORE_NAME, 
-//       store_url: `${isCustomer ? process.env.STOREFRONT_URL : `${process.env.BACKEND_URL}/app`}/reset-password?email=${customer.email}&token=${data.token}`, 
-//       // token: data.token 
-//     },
-//   });
-// }
-
-// export const config: SubscriberConfig = {
-//   event: "auth.password_reset",
-// };
-
-
-// src/subscribers/password-reset.ts
 import type { SubscriberArgs, SubscriberConfig } from "@shopenup/shopenup";
 import { ContainerRegistrationKeys, Modules } from "@shopenup/framework/utils";
 import type { CustomerDTO } from "@shopenup/framework/types";
 
+type PasswordResetPayload = {
+  entity_id: string;
+  token: string;
+  actor_type?: string;
+  /** Older payloads used camelCase (see Medusa v2.0.7+ notes). */
+  actorType?: string;
+};
+
+console.log("✅ [auth-password-reset] Subscriber registered for event: auth.password_reset");
+
+/**
+ * For `emailpass`, `entity_id` is the identifier (the customer's email). Medusa sends the
+ * notification *to* that address — a separate DB lookup is only for personalization.
+ * A strict `query.graph({ filters: { email }})` often returns no rows, so we used to bail
+ * with `if (!customer?.email) return` and never sent mail.
+ */
 export default async function sendPasswordResetNotification({
   event: { data },
   container,
-}: SubscriberArgs<{ entity_id: string; token: string; actor_type: string }>) {
+}: SubscriberArgs<PasswordResetPayload>) {
   try {
     const query = container.resolve(ContainerRegistrationKeys.QUERY);
     const notificationModuleService = container.resolve(Modules.NOTIFICATION);
 
-    const isCustomer = data.actor_type === "customer" || data.actor_type === "logged-in-customer";
+    const actor = String(data.actor_type ?? data.actorType ?? "").toLowerCase();
+    const isCustomer = actor === "customer" || actor === "logged-in-customer";
 
-    // Fields to fetch from customer/user
-    const fields = ["id", "email", "first_name", "last_name"] as const satisfies (keyof CustomerDTO)[];
+    const toEmail = String(data.entity_id || "")
+      .trim()
+      .toLowerCase();
+    if (!toEmail || !toEmail.includes("@")) {
+      console.warn("[auth-password-reset] Invalid entity_id (expected email for emailpass):", data.entity_id);
+      return;
+    }
 
-    const { data: customers } = await query.graph({
-      entity: isCustomer ? "customer" : "user",
-      fields,
-      filters: { email: data.entity_id },
-    });
+    let firstName = toEmail.split("@")[0] || "there";
+    let customerForTemplate: Pick<CustomerDTO, "id" | "email" | "first_name" | "last_name"> = {
+      id: "",
+      email: toEmail,
+      first_name: firstName,
+      last_name: "",
+    };
 
-    const customer = customers[0] as Pick<CustomerDTO, (typeof fields)[number]>;
-    if (!customer?.email) return;
+    if (isCustomer) {
+      try {
+        const { data: customers } = await query.graph({
+          entity: "customer",
+          fields: ["id", "email", "first_name", "last_name"],
+          filters: { email: toEmail },
+        });
+        const c = customers?.[0] as CustomerDTO | undefined;
+        if (c?.email) {
+          customerForTemplate = {
+            id: c.id,
+            email: c.email,
+            first_name: c.first_name || firstName,
+            last_name: c.last_name || "",
+          };
+          if (c.first_name?.trim()) {
+            firstName = c.first_name.trim();
+          }
+        }
+      } catch (e) {
+        console.warn("[auth-password-reset] Optional customer lookup failed (still sending email):", e);
+      }
+    } else {
+      try {
+        const { data: users } = await query.graph({
+          entity: "user",
+          fields: ["id", "email", "first_name", "last_name"],
+          filters: { email: toEmail },
+        });
+        const u = users?.[0] as CustomerDTO | undefined;
+        if (u?.email) {
+          customerForTemplate = {
+            id: u.id,
+            email: u.email,
+            first_name: u.first_name || firstName,
+            last_name: u.last_name || "",
+          };
+          if (u.first_name?.trim()) {
+            firstName = u.first_name.trim();
+          }
+        }
+      } catch (e) {
+        console.warn("[auth-password-reset] Optional user lookup failed (still sending email):", e);
+      }
+    }
 
-    // Dynamically set email subject
-    const subject = `Reset your password, ${customer.first_name} 🔒`;
+    const config = container.resolve("configModule") as {
+      admin?: { storefrontUrl?: string; backendUrl?: string; path?: string };
+    };
 
-    // Clean up URLs by removing trailing commas, slashes, and spaces
-    const frontendUrl = (process.env.STOREFRONT_URL || '').replace(/[,\/\s]+$/, '').trim();
-    const backendUrl = (process.env.BACKEND_URL || '').replace(/[,\/\s]+$/, '').trim();
-    
-    // Construct the reset password URL properly
-    const baseUrl = isCustomer ? frontendUrl : `${backendUrl}/app`;
-    const resetUrl = `${baseUrl}/reset-password?email=${encodeURIComponent(customer.email)}&token=${data.token}`;
-    // Send the notification via SMTP
+    const backendBase =
+      config.admin?.backendUrl && config.admin.backendUrl !== "/"
+        ? String(config.admin.backendUrl).replace(/[,\/\s]+$/, "").trim()
+        : (process.env.BACKEND_URL || "http://localhost:9000").replace(/[,\/\s]+$/, "").trim();
+    const adminPath = config.admin?.path ?? "/app";
+
+    const storefront = String(config.admin?.storefrontUrl || process.env.STOREFRONT_URL || "")
+      .replace(/[,\/\s]+$/, "")
+      .trim();
+
+    const baseUrl = isCustomer ? storefront : `${backendBase}${adminPath}`;
+    let urlBase = baseUrl.replace(/\/+$/, "");
+    if (!urlBase) {
+      urlBase = (process.env.STOREFRONT_URL || "").replace(/[,\/\s]+$/, "").trim();
+    }
+    if (!urlBase && !isCustomer) {
+      urlBase = `${backendBase}${adminPath}`.replace(/\/+$/, "");
+    }
+    if (!urlBase) {
+      console.error(
+        "[auth-password-reset] Cannot build reset link: set STOREFRONT_URL (customers) or BACKEND_URL (admin)."
+      );
+      return;
+    }
+
+    const resetUrl = `${urlBase}/reset-password?email=${encodeURIComponent(toEmail)}&token=${encodeURIComponent(data.token)}`;
+    const subject = `Reset your password, ${firstName}`;
+
     await notificationModuleService.createNotifications({
-      to: customer.email,
+      to: toEmail,
       channel: "email",
-      template: "auth-password-reset", // Name of your Handlebars template (auth-password-reset.hbs)
+      template: "auth-password-reset",
       data: {
         subject,
-        customer,
-        store_name: process.env.STORE_NAME,
+        customer: customerForTemplate,
+        store_name: process.env.STORE_NAME || "Store",
         store_url: resetUrl,
       },
     });
+
+    console.log(`[auth-password-reset] Sent password reset email to ${toEmail}`);
   } catch (error) {
     console.error("Error in password reset notification handler:", error);
-    // Don't throw - subscribers should fail gracefully
   }
 }
 

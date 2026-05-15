@@ -1,10 +1,6 @@
 import { OrderConfirmTemplateClient } from "@/components/pages/order-confirm-template-client";
-import {
-  finalizeLuminTemplateMarkup,
-  loadLuminTemplate,
-  renderTransformedLuminMarkup,
-  transformLuminTemplateMarkup
-} from "@/lib/render-lumin-template";
+import { getOrderThankYouMarkup } from "@/lib/lumin-page-markup";
+import { renderTransformedLuminMarkup } from "@/lib/render-lumin-template";
 
 type OrderConfirmPageProps = {
   searchParams?: {
@@ -13,13 +9,10 @@ type OrderConfirmPageProps = {
 };
 
 export default async function OrderConfirmPage({ searchParams }: OrderConfirmPageProps) {
-  const html = await loadLuminTemplate("thank-you.html");
   const orderId = searchParams?.order_id || "";
-  let pageMarkup = transformLuminTemplateMarkup(html);
-  pageMarkup = await finalizeLuminTemplateMarkup(pageMarkup);
   return (
     <>
-      {renderTransformedLuminMarkup(pageMarkup)}
+      {renderTransformedLuminMarkup(await getOrderThankYouMarkup())}
       <OrderConfirmTemplateClient orderId={orderId} />
     </>
   );

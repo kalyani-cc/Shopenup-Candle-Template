@@ -126,37 +126,61 @@ const slideToggle = (target, time) => {
 
 /* Offcanvas/Collapseable Menu */
 const offCanvasMenu = (selector) => {
-    const offCanvasNav = document.querySelector(selector)
+    if (!selector || typeof document.querySelectorAll !== "function") {
+        return
+    }
+    let roots
+    try {
+        roots = document.querySelectorAll(selector)
+    } catch (_e) {
+        return
+    }
+    roots.forEach((offCanvasNav) => {
+        if (!offCanvasNav || typeof offCanvasNav.querySelectorAll !== "function") {
+            return
+        }
+        offCanvasNav.querySelectorAll(".menu-expand").forEach((item) => {
+            item.addEventListener("click", (e) => {
+                e.preventDefault()
+                const parent = item.parentElement && item.parentElement.parentElement
+                if (!parent || !parent.classList) {
+                    return
+                }
 
-    offCanvasNav.querySelectorAll(".menu-expand").forEach((item) => {
-        item.addEventListener("click", (e) => {
-            e.preventDefault()
-            const parent = item.parentElement.parentElement
+                if (parent.classList.contains("active")) {
+                    parent.classList.remove("active")
 
-            if (parent.classList.contains("active")) {
-                parent.classList.remove("active")
+                    parent
+                        .querySelectorAll(".sub-menu, .mega-menu, .children")
+                        .forEach((subMenu) => {
+                            const pe = subMenu.parentElement
+                            if (pe && pe.classList) {
+                                pe.classList.remove("active")
+                            }
+                            slideUp(subMenu)
+                        })
+                } else {
+                    parent.classList.add("active")
+                    const nextSibling = item.parentElement && item.parentElement.nextElementSibling
+                    if (nextSibling) {
+                        slideDown(nextSibling)
+                    }
 
-                parent
-                    .querySelectorAll(".sub-menu, .mega-menu, .children")
-                    .forEach((subMenu) => {
-                        subMenu.parentElement.classList.remove("active")
-                        slideUp(subMenu)
+                    getSiblings(parent).forEach((item) => {
+                        item.classList.remove("active")
+
+                        item.querySelectorAll(
+                            ".sub-menu, .mega-menu, .children"
+                        ).forEach((subMenu) => {
+                            const pe = subMenu.parentElement
+                            if (pe && pe.classList) {
+                                pe.classList.remove("active")
+                            }
+                            slideUp(subMenu)
+                        })
                     })
-            } else {
-                parent.classList.add("active")
-                slideDown(item.parentElement.nextElementSibling)
-
-                getSiblings(parent).forEach((item) => {
-                    item.classList.remove("active")
-
-                    item.querySelectorAll(
-                        ".sub-menu, .mega-menu, .children"
-                    ).forEach((subMenu) => {
-                        subMenu.parentElement.classList.remove("active")
-                        slideUp(subMenu)
-                    })
-                })
-            }
+                }
+            })
         })
     })
 }

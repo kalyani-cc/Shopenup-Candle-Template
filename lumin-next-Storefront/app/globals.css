@@ -6,6 +6,21 @@
 @import "/assets/css/nice-select2.css";
 @import "/assets/css/style.min.css";
 
+/*
+ * Bundled `bootstrap.min.css` ships a bad fallback for the breadcrumb divider
+ * (`content: var(--bs-breadcrumb-divider, "http://htmldemo.net/")`), which prints
+ * that URL between every crumb. Force a normal slash site-wide.
+ */
+:root,
+[data-bs-theme="light"] {
+  --bs-breadcrumb-divider: "/";
+}
+
+/* Belt-and-suspenders: some builds bake a bad `var(..., "http://…")` fallback into `content`. */
+.breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+  content: "/" !important;
+}
+
 html,
 body {
   margin: 0;
@@ -252,6 +267,439 @@ body {
   }
 }
 
+/* --- Contact page (`/contact-us`): theme uses huge breadcrumb padding + 18px/20px form fields --- */
+.lumin-page-content .lumin-contact-page .breadcrumb-section {
+  padding-block: clamp(2rem, 5vw, 2.75rem);
+}
+
+@media (min-width: 992px) {
+  .lumin-page-content .lumin-contact-page .breadcrumb-section {
+    padding-block: clamp(2.25rem, 4vw, 3rem);
+  }
+}
+
+.lumin-page-content .lumin-contact-page .breadcrumb-wrapper__title {
+  font-size: clamp(1.65rem, 3.5vw, 2rem);
+  margin-bottom: 0.35rem;
+}
+
+.lumin-page-content .lumin-contact-page .breadcrumb-wrapper__items {
+  margin-bottom: 0;
+}
+
+.lumin-page-content .lumin-contact-page .contact-us-section.section-padding-2 {
+  padding-bottom: clamp(2.25rem, 5vw, 3.25rem);
+}
+
+.lumin-page-content .lumin-contact-page .contact-us-section .custom-container {
+  max-width: min(100%, 1080px);
+}
+
+.lumin-page-content .lumin-contact-page .contact-us-wrapper .row.gy-5 {
+  --bs-gutter-y: 1.25rem;
+}
+
+.lumin-page-content .lumin-contact-page .contact-us__title {
+  font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+  margin-bottom: 0.65rem;
+  font-weight: 600;
+}
+
+.lumin-page-content .lumin-contact-page .contact-us-form .single-form {
+  margin-top: 0.85rem;
+}
+
+.lumin-page-content .lumin-contact-page .contact-us-form form > .row:first-child .single-form {
+  margin-top: 0;
+}
+
+.lumin-page-content .lumin-contact-page .single-form__label {
+  font-size: 0.875rem;
+  margin-bottom: 0.35rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.lumin-page-content .lumin-contact-page input.single-form__input {
+  padding: 0.55rem 0.85rem;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  min-height: 2.65rem;
+}
+
+.lumin-page-content .lumin-contact-page textarea.single-form__input {
+  padding: 0.65rem 0.85rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  min-height: 7.5rem;
+  resize: vertical;
+}
+
+.lumin-page-content .lumin-contact-page .single-form__btn {
+  padding: 0.65rem 1.5rem;
+  font-size: 0.875rem;
+  letter-spacing: 0.06em;
+}
+
+.lumin-page-content .lumin-contact-page .contact-info-item__title {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.lumin-page-content .lumin-contact-page .contact-info-item__service {
+  margin-top: 0.85rem;
+}
+
+.lumin-page-content .lumin-contact-page .contact-info-item__service--title {
+  font-size: 0.9rem;
+  margin-bottom: 0.35rem;
+}
+
+.lumin-page-content .lumin-contact-page .contact-us-info p,
+.lumin-page-content .lumin-contact-page .contact-info-item p {
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.lumin-page-content .lumin-contact-page .contact-info-item + .contact-info-item {
+  margin-top: 1.15rem;
+  padding-top: 1.15rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* --- About page (`/about`): theme uses 64px hero title, 880px video, 150px image radii, 80px section padding --- */
+.lumin-page-content .lumin-about-page .lumin-about-breadcrumb {
+  padding-top: clamp(1rem, 3vw, 1.5rem);
+  padding-bottom: 0.25rem;
+}
+
+.lumin-page-content .lumin-about-page .lumin-about-breadcrumb__nav .breadcrumb {
+  font-size: 0.875rem;
+  color: #6b6560;
+}
+
+.lumin-page-content .lumin-about-page .lumin-about-breadcrumb__nav .breadcrumb-item.active {
+  color: #363636;
+}
+
+.lumin-page-content .lumin-about-page .about-section-2.section-padding,
+.lumin-page-content .lumin-about-page .testimonial-section-2.section-padding,
+.lumin-page-content .lumin-about-page .contact-section.section-padding {
+  padding-top: clamp(2.25rem, 5vw, 3rem);
+  padding-bottom: clamp(2.25rem, 5vw, 3rem);
+}
+
+.lumin-page-content .lumin-about-page .about-section-2 .custom-container,
+.lumin-page-content .lumin-about-page .testimonial-section-2 .custom-container,
+.lumin-page-content .lumin-about-page .contact-section .custom-container {
+  max-width: min(100%, 1080px);
+}
+
+.lumin-page-content .lumin-about-page .about-title {
+  margin-bottom: 0.5rem;
+}
+
+.lumin-page-content .lumin-about-page .about-title__title {
+  font-size: clamp(1.75rem, 4vw, 2.35rem);
+  line-height: 1.15;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.lumin-page-content .lumin-about-page .about-title p {
+  max-width: 38rem;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: #5c5652;
+}
+
+.lumin-page-content .lumin-about-page .about-items {
+  gap: 1.25rem;
+  padding-top: clamp(1rem, 3vw, 1.5rem);
+}
+
+@media (min-width: 992px) {
+  .lumin-page-content .lumin-about-page .about-items {
+    gap: 1.5rem;
+  }
+}
+
+.lumin-page-content .lumin-about-page .about-item__top--image {
+  overflow: hidden;
+  border-radius: 16px 16px 12px 12px;
+}
+
+.lumin-page-content .lumin-about-page .about-item__top--image img {
+  width: 100%;
+  max-height: min(42vh, 300px);
+  height: auto;
+  object-fit: cover;
+  display: block;
+  border-radius: inherit !important;
+}
+
+.lumin-page-content .lumin-about-page .about-item__top--title {
+  font-size: clamp(1.15rem, 2.8vw, 1.5rem);
+  font-weight: 600;
+  bottom: 1rem;
+  padding-inline: 0.75rem;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.35);
+}
+
+.lumin-page-content .lumin-about-page .about-item__bottom {
+  margin-top: 2.5rem;
+  padding: 1.25rem 1rem 1.1rem;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.lumin-page-content .lumin-about-page .about-item__bottom::before {
+  top: -2.5rem;
+  height: 2.5rem;
+}
+
+.lumin-page-content .lumin-about-page .about-item__bottom--count {
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  opacity: 0.85;
+}
+
+.lumin-page-content .lumin-about-page .about-item__bottom--description {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #494949;
+}
+
+.lumin-page-content .lumin-about-page .about-video.lumin-about-video {
+  height: auto;
+  min-height: min(38vh, 320px);
+  max-height: min(48vh, 400px);
+  padding-block: clamp(2.5rem, 6vw, 3.5rem);
+  background-position: center;
+  background-size: cover;
+}
+
+@media (min-width: 768px) {
+  .lumin-page-content .lumin-about-page .about-video.lumin-about-video {
+    min-height: min(36vh, 340px);
+    max-height: min(44vh, 420px);
+  }
+}
+
+.lumin-page-content .lumin-about-page .about-video__title {
+  font-size: clamp(1.35rem, 3.5vw, 1.85rem);
+  margin-bottom: 0.75rem;
+}
+
+.lumin-page-content .lumin-about-page .about-video__play {
+  width: 3.25rem;
+  height: 3.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  color: #363636;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.lumin-page-content .lumin-about-page .about-video__play:hover {
+  transform: scale(1.06);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.2);
+}
+
+.lumin-page-content .lumin-about-page .about-video__play svg {
+  width: 1em !important;
+  height: 1em !important;
+  font-size: 1rem;
+}
+
+.lumin-page-content .lumin-about-page .section-title-3__title {
+  font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+  font-weight: 600;
+}
+
+.lumin-page-content .lumin-about-page .testimonial-item__title {
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8a827a;
+}
+
+.lumin-page-content .lumin-about-page .testimonial-item__description {
+  font-size: 1rem;
+  line-height: 1.65;
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.lumin-page-content .lumin-about-page .testimonial-active {
+  padding-bottom: 2.5rem;
+}
+
+.lumin-page-content .lumin-about-page .instagram-section.lumin-about-instagram {
+  background: linear-gradient(180deg, #faf8f5 0%, #fff 100%);
+  padding-block: clamp(1.75rem, 4vw, 2.5rem);
+}
+
+/* Horizontal strip: avoid theme `.grid` + Masonry (absolute positioning → single column) */
+.lumin-page-content .lumin-about-page .lumin-about-instagram__row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+  max-width: min(100%, 1040px);
+  margin: 0 auto;
+  padding-inline: clamp(0.75rem, 2vw, 1rem);
+}
+
+@media (max-width: 767.98px) {
+  .lumin-page-content .lumin-about-page .lumin-about-instagram__row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 419.98px) {
+  .lumin-page-content .lumin-about-page .lumin-about-instagram__row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lumin-page-content .lumin-about-page .lumin-about-instagram__cell .instagram-item {
+  margin-top: 0 !important;
+}
+
+.lumin-page-content .lumin-about-page .lumin-about-instagram__cell .instagram-item__image {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  aspect-ratio: 4 / 3;
+}
+
+.lumin-page-content .lumin-about-page .lumin-about-instagram__cell .instagram-item__image img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  display: block;
+}
+
+.lumin-page-content .lumin-about-page .contact-wrapper__title {
+  font-size: clamp(1.35rem, 3vw, 1.75rem);
+  line-height: 1.25;
+  margin-bottom: 0.5rem;
+}
+
+.lumin-page-content .lumin-about-page .contact-wrapper > p {
+  font-size: 0.95rem !important;
+  line-height: 1.6;
+  color: #5c5652 !important;
+}
+
+.lumin-page-content .lumin-about-page .contact-wrapper .btn-dark {
+  padding: 0.55rem 1.35rem;
+  font-size: 0.875rem;
+  letter-spacing: 0.06em;
+  border-radius: 999px;
+}
+
+.lumin-page-content .lumin-about-page .contact-social {
+  margin-top: 2.25rem !important;
+}
+
+.lumin-page-content .lumin-about-page .contact-social .contact-wrapper__title {
+  font-size: clamp(1.1rem, 2.2vw, 1.35rem);
+}
+
+/* Blog post (`/blog/[slug]`): breadcrumb pseudo-element cleanup + hero + readable body */
+.lumin-blog-post-page .lumin-blog-post-breadcrumb a::after,
+.lumin-blog-post-page .lumin-blog-post-breadcrumb a::before {
+  content: none !important;
+}
+
+.lumin-blog-post-page .lumin-blog-post-breadcrumb.breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+  content: "/" !important;
+  float: none;
+  padding-right: 0.5rem;
+  color: #999;
+}
+
+.lumin-blog-post-page .lumin-blog-post-breadcrumb.breadcrumb .breadcrumb-item.active {
+  color: #363636;
+}
+
+/* Side-by-side: compact image (left), article copy (right) on md+; stacked on small screens */
+.lumin-blog-post-page .lumin-blog-post-media-row {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.lumin-blog-post-page .lumin-blog-post-hero {
+  width: 100%;
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 12px;
+  overflow: visible;
+  background: #f4f2ef;
+  padding: 10px;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.07);
+  /* Theme `.blog-single__image` uses padding-bottom + absolute img — breaks narrow columns */
+  margin-top: 0 !important;
+  padding-bottom: 0 !important;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+@media (min-width: 768px) {
+  .lumin-blog-post-page .lumin-blog-post-hero {
+    margin-left: 0;
+    margin-right: 0;
+    max-width: none;
+  }
+}
+
+/* Full image visible; overrides theme absolute fill + cover */
+.lumin-blog-post-page .blog-single__image.lumin-blog-post-hero img {
+  position: static !important;
+  left: auto !important;
+  top: auto !important;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto !important;
+  max-height: min(72vh, 520px);
+  object-fit: contain !important;
+  object-position: center;
+  border-radius: 8px;
+}
+
+.lumin-blog-post-page .lumin-blog-post-prose {
+  padding-top: 0;
+}
+
+/* Theme gives `.blog-single__content` large top margin for stacked hero; not needed in side column */
+.lumin-blog-post-page .blog-single__content {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.lumin-blog-post-page .lumin-blog-post-prose p {
+  line-height: 1.75;
+  margin-bottom: 1.1rem;
+  color: #363636;
+}
+
+.lumin-blog-post-page .lumin-blog-post-prose p:last-child {
+  margin-bottom: 0;
+}
+
 .lumin-order-details-page .lumin-order-line-item + .lumin-order-line-item {
   border-top: 1px solid #eee;
 }
@@ -274,10 +722,115 @@ body {
   width: 100%;
 }
 
-/* Guard against oversized/stretched template images (notably on Home sections). */
+/*
+  Guard against oversized/stretched template images (notably on Home sections).
+  Why some blocks feel “sometimes huge”: API/CMS images change per product/post visit (different
+  aspect ratios). Width is capped but height follows intrinsic ratio — portrait shots become very tall.
+  Product grids use a square crop below; blog uses `.lumin-home-blog`; these rules cover the rest.
+*/
 .lumin-page-content img {
   max-width: 100%;
   height: auto;
+}
+
+/*
+ * Product detail + related grid (`app/products/[id]`, `product-related-grid.tsx`): Bootstrap `.ratio`
+ * must win over global `img { height: auto }` so thumbnails stay square.
+ */
+.lumin-product-page .ratio img,
+.lumin-related-products .ratio img {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+}
+
+/* Home (`index.html`): cap horizontal sprawl on ultrawide monitors (same rhythm as shop/blog). */
+.lumin-page-content .home-container.container-fluid {
+  max-width: min(100%, 1526px);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Special offer block: hero-style JPG can dominate the viewport when stacked or on narrow screens. */
+.lumin-page-content .special-offer-image {
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.lumin-page-content .special-offer-image > img:first-child {
+  display: block;
+  width: 100%;
+  max-height: min(52vh, 460px);
+  object-fit: cover;
+}
+
+/* “Handpick today” banners: portrait assets can otherwise span most of the viewport height */
+.lumin-page-content .banner-item__image img {
+  display: block;
+  width: 100%;
+  max-height: min(56vh, 520px);
+  object-fit: cover;
+}
+
+/* Brand carousel SVGs / logos stay readable on ultrawide */
+.lumin-page-content .brand-section .brand-item img {
+  max-height: 100px;
+  width: auto;
+  max-width: 100%;
+  margin-inline: auto;
+  object-fit: contain;
+}
+
+/*
+  Instagram carousel: theme + Swiper often size slides from the image’s intrinsic pixels, so a
+  large JPG suddenly fills the viewport. Pin the crop box and absolutely fill it (don’t rely on
+  height: % with height:auto from the global img rule).
+*/
+.lumin-page-content .instagram-section .instagram-item > a {
+  display: block;
+}
+
+.lumin-page-content .instagram-section .instagram-wrapper .swiper-slide {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  height: auto;
+}
+
+.lumin-page-content .instagram-section .instagram-item {
+  width: 100%;
+  max-width: min(100%, 420px);
+  margin-inline: auto;
+}
+
+.lumin-page-content .instagram-section .instagram-item__image {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  margin-inline: auto;
+  aspect-ratio: 1 / 1;
+  max-height: min(72vw, 420px);
+  overflow: hidden;
+  border-radius: 10px;
+  background: #f0ebe6;
+}
+
+.lumin-page-content .instagram-section .instagram-item__image img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+}
+
+/* Brand strip: logos stay icon-sized even if SVG/asset dimensions vary */
+.lumin-page-content .brand-item img {
+  max-height: 72px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
 }
 
 .lumin-page-content .my-account-tab,
@@ -641,6 +1194,23 @@ body {
   margin-top: 0.25rem;
 }
 
+/* CMS HTML body: inline images/videos don’t get `.ratio`; cap height so they don’t hijack the page */
+.lumin-product-detail__description img {
+  max-width: 100%;
+  height: auto;
+  max-height: min(420px, 58vh);
+  width: auto;
+  object-fit: contain;
+  display: block;
+  margin-inline: auto;
+  border-radius: 8px;
+}
+
+.lumin-product-detail__description iframe,
+.lumin-product-detail__description video {
+  max-width: 100%;
+}
+
 .lumin-icon-action-btn {
   --lumin-accent: #c45c3e;
   width: 2.75rem;
@@ -726,20 +1296,60 @@ body {
   opacity: 1 !important;
 }
 
-/* Home products: prevent oversized API images from stretching card/layout */
-.product-wrapper .single-product__thumbnail--holder {
+/*
+  Home + shop product tiles: Lumin’s `.single-product__thumbnail--holder a { padding-bottom: 102% }`
+  is meant to force a square image box. We also set `aspect-ratio: 1/1` on the holder — together,
+  the anchor’s percentage padding can stack and **stretch slides/grids** when real API thumbnails
+  (mixed aspect ratios / huge pixels) replace demo JPGs. Fill the square box with absolute children.
+*/
+.product-wrapper .single-product__thumbnail--holder,
+.shop-wrapper .single-product__thumbnail--holder {
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
   overflow: hidden;
 }
 
-.product-wrapper .single-product__thumbnail--holder img {
+.product-wrapper .single-product__thumbnail--holder > a,
+.shop-wrapper .single-product__thumbnail--holder > a {
+  position: absolute !important;
+  inset: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding-bottom: 0 !important;
+}
+
+.product-wrapper .single-product__thumbnail--holder img,
+.shop-wrapper .single-product__thumbnail--holder img {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
   display: block;
   width: 100% !important;
   height: 100% !important;
   max-width: 100%;
   object-fit: cover;
+  border-radius: 10px;
+}
+
+/*
+ * Home TSX (`home-container`): theme `.single-product__thumbnail { flex-grow: 2; height: 100% }`
+ * lets the image column balloon when collection/API photos have tall intrinsics. Pin the tile box.
+ */
+.lumin-page-content .home-container .product-wrapper .single-product__thumbnail {
+  flex-grow: 0;
+  flex-basis: auto;
+  height: auto;
+  min-height: 0;
+}
+
+.lumin-page-content .home-container .product-wrapper .swiper-slide {
+  height: auto;
+}
+
+.lumin-page-content .home-container .product-wrapper .single-product__thumbnail--holder img {
+  max-height: 100%;
 }
 
 /*
@@ -1172,4 +1782,661 @@ body {
   gap: 0.5rem;
   margin: 1.5rem 0 0;
   justify-content: flex-start;
+}
+
+/* --- Home (index): Blog & Insights strip — API thumbnails can be huge; cap like listing cards --- */
+.lumin-page-content .blog-section .blog-wrapper.lumin-home-blog .blog-item__image {
+  overflow: hidden;
+  border-radius: 10px;
+  background: #f4f2ef;
+}
+
+.lumin-page-content .blog-section .blog-wrapper.lumin-home-blog .blog-item__image a {
+  display: block;
+  line-height: 0;
+}
+
+.lumin-page-content .blog-section .blog-wrapper.lumin-home-blog .blog-item__image img {
+  width: 100%;
+  max-height: 240px;
+  height: auto;
+  object-fit: cover;
+  display: block;
+}
+
+@media (min-width: 576px) {
+  .lumin-page-content .blog-section .blog-wrapper.lumin-home-blog .blog-item__image img {
+    max-height: 280px;
+  }
+}
+
+@media (min-width: 992px) {
+  .lumin-page-content .blog-section .blog-wrapper.lumin-home-blog .blog-item__image img {
+    max-height: 300px;
+  }
+}
+
+/* --- Blog listing (/blog): align content width with `custom-container` (shop, etc.) --- */
+.lumin-page-content .blog-section-02 .container-fluid.blog-container {
+  max-width: 1526px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.lumin-page-content .blog-items.lumin-blog-items {
+  max-width: 100%;
+}
+
+.lumin-page-content .blog-items.lumin-blog-items .lumin-blog-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1.25rem;
+  margin-bottom: 2.25rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.lumin-page-content .blog-items.lumin-blog-items .lumin-blog-card:last-child {
+  border-bottom: 0;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+@media (min-width: 768px) {
+  .lumin-page-content .blog-items.lumin-blog-items .lumin-blog-card {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 2rem;
+  }
+
+  .lumin-page-content .blog-items.lumin-blog-items .lumin-blog-card__media {
+    flex: 0 0 40%;
+    max-width: 40%;
+    min-width: 0;
+  }
+
+  .lumin-page-content .blog-items.lumin-blog-items .lumin-blog-card__body {
+    flex: 1;
+    min-width: 0;
+    padding-top: 0.15rem;
+  }
+}
+
+/* Blog listing: fixed slot + object-fit contain so thumbnails aren’t cropped. */
+.lumin-page-content .blog-items.lumin-blog-items .lumin-blog-card__media {
+  overflow: hidden;
+  border-radius: 10px;
+  background: #f4f2ef;
+  align-self: flex-start;
+  width: 100%;
+  height: 280px;
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .lumin-page-content .blog-items.lumin-blog-items .lumin-blog-card__media {
+    height: 240px;
+  }
+}
+
+/* Override theme `.blog-item-2__image a { padding-bottom: 55% }` — it was taller than our fixed media box and got clipped. */
+.lumin-page-content .blog-items.lumin-blog-items .lumin-blog-card__media-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding-bottom: 0 !important;
+  position: relative;
+  line-height: 0;
+}
+
+.lumin-page-content .blog-items.lumin-blog-items .lumin-blog-card__img {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center;
+  vertical-align: middle;
+}
+
+.lumin-page-content .blog-items.lumin-blog-items .blog-item-2__content--title {
+  margin-top: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.lumin-page-content .blog-items.lumin-blog-items .blog-item-2__content--title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.lumin-page-content .blog-items.lumin-blog-items .blog-item-2__content--title a:hover {
+  color: #c45c3e;
+}
+
+.lumin-page-content .blog-items.lumin-blog-items .blog-item-2__content--description {
+  margin-bottom: 1rem;
+  line-height: 1.65;
+  color: #555;
+}
+
+.lumin-page-content .blog-items.lumin-blog-items .blog-item-2__content--meta {
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+}
+
+.lumin-page-content .blog-items.lumin-blog-items .lumin-blog-card__sep {
+  opacity: 0.75;
+}
+
+.lumin-blog-pagination .lumin-blog-page-nav--disabled {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.5rem;
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+.lumin-blog-pagination .lumin-blog-page-ellipsis {
+  display: inline-flex;
+  padding: 0.35rem 0.25rem;
+  color: #999;
+  user-select: none;
+}
+
+.lumin-blog-pagination--single {
+  min-height: 0;
+}
+
+/* Blog single (/blog/[slug]): same horizontal rhythm as listing + shop */
+.lumin-page-content .container-fluid.blog-single-container {
+  max-width: 1526px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.lumin-page-content .blog-single__image {
+  overflow: hidden;
+  border-radius: 10px;
+  background: #f4f2ef;
+  max-width: 100%;
+}
+
+.lumin-page-content .blog-single__image img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  max-height: min(52vh, 520px);
+  object-fit: cover;
+  margin: 0 auto;
+}
+
+/* Products (/products): sidebar filters + grid/list */
+.lumin-shop-sidebar .lumin-shop-facet-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.lumin-shop-sidebar .lumin-shop-facet-links li {
+  margin-bottom: 0.35rem;
+}
+
+.lumin-shop-sidebar .lumin-shop-facet-links a {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  color: #494949;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.lumin-shop-sidebar .lumin-shop-facet-links a:hover {
+  color: #c45c3e;
+}
+
+.lumin-shop-sidebar .lumin-facet-link--active a {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.lumin-shop-sidebar .lumin-facet-count {
+  opacity: 0.65;
+  font-size: 0.85em;
+}
+
+.lumin-shop-sidebar .lumin-facet-dot {
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  border: 1px solid #bbb;
+  margin-right: 0.25rem;
+  flex-shrink: 0;
+}
+
+.lumin-shop-toolbar .lumin-view-btn--active {
+  background: #1a1a1a;
+  border-color: #1a1a1a;
+  color: #fff;
+}
+
+.lumin-products-row--list .lumin-shop-product-card--list {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  text-align: left !important;
+  gap: 1.25rem;
+}
+
+.lumin-products-row--list .lumin-shop-product-card--list .single-product__thumbnail {
+  flex: 0 0 220px;
+  max-width: 220px;
+}
+
+.lumin-products-row--list .lumin-shop-product-card--list .single-product__info {
+  flex: 1;
+  text-align: left !important;
+  padding-top: 0.5rem;
+}
+
+.lumin-products-row--list .lumin-shop-product-card--list .single-product__info--title,
+.lumin-products-row--list .lumin-shop-product-card--list .single-product__info--tags {
+  text-align: left !important;
+}
+
+@media (max-width: 575.98px) {
+  .lumin-products-row--list .lumin-shop-product-card--list {
+    flex-direction: column;
+  }
+  .lumin-products-row--list .lumin-shop-product-card--list .single-product__thumbnail {
+    max-width: 100%;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Home storefront (`components/pages/home-*`): cohesive luxury retail polish
+   -------------------------------------------------------------------------- */
+.lumin-home-page {
+  --lumin-home-accent: #c45c3e;
+  --lumin-home-accent-soft: rgba(196, 92, 62, 0.12);
+  --lumin-home-ink: #1a1a1a;
+  --lumin-home-muted: #6b6560;
+  background: linear-gradient(180deg, #fdfcfa 0%, #f5f1eb 38%, #faf8f5 100%);
+}
+
+/* Hero: depth + readable copy over photography */
+.lumin-home-page .lumin-home-hero.slider-section .slider-item {
+  position: relative;
+}
+
+.lumin-home-page .lumin-home-hero.slider-section .slider-item::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    125deg,
+    rgba(12, 10, 8, 0.55) 0%,
+    rgba(12, 10, 8, 0.18) 42%,
+    rgba(12, 10, 8, 0.5) 100%
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
+.lumin-home-page .lumin-home-hero.slider-section .slider-item > .container-fluid {
+  position: relative;
+  z-index: 2;
+}
+
+.lumin-home-page .lumin-home-hero .home-1-slider-content-style-1 {
+  max-width: 44rem;
+  margin-inline: auto;
+  padding-block: 0.5rem;
+}
+
+.lumin-home-page .lumin-home-hero .home-1-slider-content-style-1__sub-title {
+  letter-spacing: 0.28em;
+  font-weight: 600;
+  opacity: 0.95;
+}
+
+.lumin-home-page .lumin-home-hero .home-1-slider-content-style-1__title {
+  text-shadow: 0 6px 36px rgba(0, 0, 0, 0.42);
+  line-height: 1.15;
+}
+
+.lumin-home-page .lumin-home-hero .home-1-slider-content-style-1__btn {
+  border-radius: 999px;
+  padding-inline: 2rem;
+  letter-spacing: 0.08em;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.lumin-home-page .lumin-home-hero .home-1-slider-content-style-1__btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.28);
+}
+
+/* Section rhythm */
+.lumin-home-page .section-padding,
+.lumin-home-page .section-padding-1 {
+  padding-top: clamp(2.75rem, 5vw, 4.5rem);
+  padding-bottom: clamp(2.75rem, 5vw, 4.5rem);
+}
+
+/* Section headings */
+.lumin-home-page .section-title__title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--lumin-home-ink);
+}
+
+.lumin-home-page .section-title {
+  margin-bottom: 2.75rem;
+}
+
+/* Handpick & editorial banners — tighter tiles (override broad `.banner-item__image img` caps) */
+.lumin-home-page .banner-section.section-padding-1 {
+  background: rgba(255, 255, 255, 0.55);
+  border-block: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.lumin-home-page .banner-section.section-padding-1 .custom-container {
+  max-width: min(100%, 1180px);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.lumin-home-page .banner-section.section-padding-1 .banner-item__image {
+  overflow: hidden;
+}
+
+/* Large left tile */
+.lumin-home-page .banner-section.section-padding-1 .row > .col-lg-6:first-child .banner-item__image img {
+  width: 100%;
+  max-height: min(34vh, 300px);
+  object-fit: cover;
+}
+
+/* Right column: two stacked tiles */
+.lumin-home-page .banner-section.section-padding-1 .row > .col-lg-6:last-child .banner-item__image img {
+  width: 100%;
+  max-height: min(19vh, 190px);
+  object-fit: cover;
+}
+
+@media (max-width: 991.98px) {
+  .lumin-home-page .banner-section.section-padding-1 .row > .col-lg-6:first-child .banner-item__image img {
+    max-height: min(36vh, 260px);
+  }
+
+  .lumin-home-page .banner-section.section-padding-1 .row > .col-lg-6:last-child .banner-item__image img {
+    max-height: min(28vh, 220px);
+  }
+}
+
+.lumin-home-page .banner-item {
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(26, 26, 26, 0.08);
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s ease;
+}
+
+.lumin-home-page .banner-item:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 22px 56px rgba(26, 26, 26, 0.12);
+}
+
+/* Product grids */
+/* New arrival + Best selling: keep fetched product photos smaller than full column */
+.lumin-home-page .home-container .product-wrapper .single-product__thumbnail {
+  width: 100%;
+  max-width: 176px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (min-width: 576px) {
+  .lumin-home-page .home-container .product-wrapper .single-product__thumbnail {
+    max-width: 196px;
+  }
+}
+
+@media (min-width: 992px) {
+  .lumin-home-page .home-container .product-wrapper .single-product__thumbnail {
+    max-width: 188px;
+  }
+}
+
+.lumin-home-page .home-container .single-product {
+  padding: 0.65rem 0.65rem 1rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease,
+    border-color 0.35s ease;
+}
+
+.lumin-home-page .home-container .single-product:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 24px 56px rgba(26, 26, 26, 0.1);
+  border-color: rgba(196, 92, 62, 0.25);
+}
+
+.lumin-home-page .home-container .single-product__info--title a {
+  transition: color 0.2s ease;
+}
+
+.lumin-home-page .home-container .single-product:hover .single-product__info--title a {
+  color: var(--lumin-home-accent);
+}
+
+/* Marquee strip */
+.lumin-home-page .features-text.section-padding {
+  background: linear-gradient(
+    90deg,
+    var(--lumin-home-accent-soft) 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    var(--lumin-home-accent-soft) 100%
+  );
+  border-block: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.lumin-home-page .features-text-item span {
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--lumin-home-muted);
+}
+
+/* Special offer block */
+.lumin-home-page .special-offer-section {
+  background: linear-gradient(135deg, #fff 0%, #faf6f2 100%);
+  border-block: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.lumin-home-page .special-offer-content__title a:hover {
+  color: var(--lumin-home-accent);
+}
+
+/* Brands */
+.lumin-home-page .brand-section {
+  background: #fff;
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.06);
+}
+
+.lumin-home-page .brand-item {
+  opacity: 0.85;
+  transition: opacity 0.25s ease;
+}
+
+.lumin-home-page .brand-item:hover {
+  opacity: 1;
+}
+
+/* View more CTAs */
+.lumin-home-page .view-more-btn,
+.lumin-home-page .view-more-btn-2 {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.65rem 2.25rem;
+  border-radius: 999px;
+  letter-spacing: 0.14em;
+  font-weight: 600;
+  font-size: 0.78rem;
+  border: 2px solid var(--lumin-home-accent);
+  color: var(--lumin-home-accent);
+  background: transparent;
+  transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.lumin-home-page .view-more-btn:hover,
+.lumin-home-page .view-more-btn-2:hover {
+  background: var(--lumin-home-accent);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(196, 92, 62, 0.35);
+}
+
+/* Blog strip */
+.lumin-home-page .blog-section {
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.lumin-home-page .blog-section .blog-item {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 14px 44px rgba(26, 26, 26, 0.07);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+.lumin-home-page .blog-section .blog-item:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 22px 56px rgba(26, 26, 26, 0.11);
+}
+
+/*
+ * Featured blog card: theme overlays text on the image; card height follows image pixels.
+ * Earlier `.lumin-home-blog` caps help globally — home-only rules win in cascade and add vh limits.
+ */
+.lumin-home-page .blog-section .blog-wrapper.lumin-home-blog .blog-item__image img {
+  max-height: min(30vh, 200px);
+}
+
+@media (min-width: 576px) {
+  .lumin-home-page .blog-section .blog-wrapper.lumin-home-blog .blog-item__image img {
+    max-height: min(28vh, 220px);
+  }
+}
+
+@media (min-width: 992px) {
+  .lumin-home-page .blog-section .blog-wrapper.lumin-home-blog .blog-item__image img {
+    max-height: min(26vh, 260px);
+  }
+}
+
+/* One-up layout (`col-lg-8`): keep strip from spanning the full home-container width */
+.lumin-home-page .blog-section .blog-wrapper.lumin-home-blog .row > .col-lg-8 {
+  max-width: min(100%, 880px);
+}
+
+/* Instagram */
+.lumin-home-page .instagram-section {
+  background: linear-gradient(180deg, #f9f6f2 0%, #fff 72%);
+}
+
+/* Shop Instagram: theme caps slides at ~420px — still dominates when 3-up; shrink on home only */
+.lumin-home-page .instagram-section .instagram-item {
+  max-width: min(100%, 260px);
+}
+
+.lumin-home-page .instagram-section .instagram-item__image {
+  max-width: min(100%, 260px);
+  max-height: min(42vw, 260px);
+}
+
+@media (max-width: 575.98px) {
+  .lumin-home-page .instagram-section .instagram-item__image {
+    max-height: min(72vw, 260px);
+  }
+}
+
+/* Info strip */
+.lumin-home-page .our-info-section {
+  background: rgba(255, 255, 255, 0.75);
+  border-block: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.lumin-home-page .our-info-item {
+  padding: 1.35rem 1.25rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 28px rgba(26, 26, 26, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.lumin-home-page .our-info-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 36px rgba(26, 26, 26, 0.08);
+}
+
+.lumin-home-page .our-info-item__title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 600;
+  font-size: 1.15rem;
+}
+
+/* Bottom split promos — height cap + cover photo (theme used contain / full column stretch) */
+.lumin-home-page .banner-section:not(.section-padding-1) {
+  max-width: min(100%, 1240px);
+  margin-inline: auto;
+}
+
+.lumin-home-page .banner-section:not(.section-padding-1) .banner-item-2 {
+  max-height: min(36vh, 320px);
+  min-height: 0;
+  height: auto;
+  padding-block: 1.35rem !important;
+  overflow: hidden;
+  transition: box-shadow 0.35s ease;
+}
+
+.lumin-home-page .banner-section:not(.section-padding-1) .banner-item-2.banner-bg-02 {
+  background-size: cover !important;
+  background-position: center !important;
+}
+
+.lumin-home-page .banner-section:not(.section-padding-1) .banner-item-2:hover {
+  box-shadow: inset 0 0 0 999px rgba(255, 255, 255, 0.04);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lumin-home-page .banner-item,
+  .lumin-home-page .home-container .single-product,
+  .lumin-home-page .blog-section .blog-item,
+  .lumin-home-page .our-info-item,
+  .lumin-home-page .lumin-home-hero .home-1-slider-content-style-1__btn {
+    transition: none;
+  }
+
+  .lumin-home-page .banner-item:hover,
+  .lumin-home-page .home-container .single-product:hover,
+  .lumin-home-page .blog-section .blog-item:hover {
+    transform: none;
+  }
 }

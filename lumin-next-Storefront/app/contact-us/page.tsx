@@ -1,12 +1,12 @@
 import { ContactFormClient } from "@/components/pages/contact-form-client";
-import { renderLuminTemplate } from "@/lib/render-lumin-template";
+import { getContactPageMarkup } from "@/lib/lumin-page-markup";
+import { renderTransformedLuminMarkup } from "@/lib/render-lumin-template";
 
 export default async function ContactPage() {
-  const lumin = await renderLuminTemplate("contact-us.html");
   return (
-    <>
-      {lumin}
+    <div className="lumin-contact-page">
+      {renderTransformedLuminMarkup(await getContactPageMarkup())}
       <ContactFormClient />
-    </>
+    </div>
   );
 }

@@ -11,8 +11,21 @@ export type ClientFetchOptions = {
   next?: { revalidate?: number; tags?: string[] };
 };
 
-const SHOPENUP_BACKEND_URL =
-  process.env.NEXT_PUBLIC_SHOPENUP_BACKEND_URL || "http://localhost:9000";
+/**
+ * Store API base URL for `sdk.client.fetch` (publishable key header when set).
+ * Prefer server env `SHOPENUP_BACKEND_URL`; use `NEXT_PUBLIC_SHOPENUP_BACKEND_URL` when the value must be available in the browser bundle.
+ */
+export const SHOPENUP_BACKEND_URL =
+  process.env.SHOPENUP_BACKEND_URL?.trim() ||
+  process.env.NEXT_PUBLIC_SHOPENUP_BACKEND_URL?.trim() ||
+  "http://localhost:9000";
+
+/** True when either env sets the API base (not relying on the localhost default). */
+export function isExplicitShopenupBackendUrlSet(): boolean {
+  return Boolean(
+    process.env.SHOPENUP_BACKEND_URL?.trim() || process.env.NEXT_PUBLIC_SHOPENUP_BACKEND_URL?.trim()
+  );
+}
 
 const PUBLISHABLE_KEY =
   process.env.NEXT_PUBLIC_SHOPENUP_PUBLISHABLE_KEY || "";
@@ -84,12 +97,19 @@ async function clientFetch<T>(path: string, options: ClientFetchOptions = {}): P
     return undefined as T;
   }
 
-  const contentType = response.headers.get("content-type");
-  if (contentType?.includes("application/json")) {
-    return (await response.json()) as T;
+  const contentType = response.headers.get("content-type") || "";
+  const text = await response.text();
+  if (!text?.trim()) {
+    return undefined as T;
   }
-
-  return undefined as T;
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    if (contentType.includes("application/json")) {
+      throw new Error(`Invalid JSON from ${path}`);
+    }
+    return undefined as T;
+  }
 }
 
 export const sdk = {

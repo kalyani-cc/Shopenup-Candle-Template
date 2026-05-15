@@ -160,13 +160,34 @@
     });
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", function () {
-      bindEvents();
+  /**
+   * Defer first badge paint until after React has hydrated the navbar.
+   * If `syncCounts` runs while readyState is already "complete", it can mutate
+   * `.badge` spans before hydration and trigger "Text content does not match server-rendered HTML".
+   */
+  function runFirstSyncAfterPaint() {
+    function tick() {
       void syncCounts();
-    });
-  } else {
+    }
+    if (typeof requestAnimationFrame !== "undefined") {
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          setTimeout(tick, 0);
+        });
+      });
+    } else {
+      setTimeout(tick, 0);
+    }
+  }
+
+  function start() {
     bindEvents();
-    void syncCounts();
+    runFirstSyncAfterPaint();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", start);
+  } else {
+    start();
   }
 })();

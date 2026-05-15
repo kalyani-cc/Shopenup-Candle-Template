@@ -16,10 +16,12 @@ export default async function fixOrderTaxInclusiveColumns({ container }: ExecArg
     `ALTER TABLE IF EXISTS "order_line_item" ADD COLUMN IF NOT EXISTS "is_tax_inclusive" BOOLEAN NOT NULL DEFAULT false;`,
     `ALTER TABLE IF EXISTS "order_line_item_adjustment" ADD COLUMN IF NOT EXISTS "is_tax_inclusive" BOOLEAN NOT NULL DEFAULT false;`,
     `ALTER TABLE IF EXISTS "order_shipping_method" ADD COLUMN IF NOT EXISTS "is_tax_inclusive" BOOLEAN NOT NULL DEFAULT false;`,
+    `ALTER TABLE IF EXISTS "order_shipping_method_adjustment" ADD COLUMN IF NOT EXISTS "is_tax_inclusive" BOOLEAN NOT NULL DEFAULT false;`,
     // Defensive additions for related tables that may be queried in older schemas.
     `ALTER TABLE IF EXISTS "cart_line_item" ADD COLUMN IF NOT EXISTS "is_tax_inclusive" BOOLEAN NOT NULL DEFAULT false;`,
     `ALTER TABLE IF EXISTS "cart_shipping_method" ADD COLUMN IF NOT EXISTS "is_tax_inclusive" BOOLEAN NOT NULL DEFAULT false;`,
     `ALTER TABLE IF EXISTS "cart_line_item_adjustment" ADD COLUMN IF NOT EXISTS "is_tax_inclusive" BOOLEAN NOT NULL DEFAULT false;`,
+    `ALTER TABLE IF EXISTS "cart_shipping_method_adjustment" ADD COLUMN IF NOT EXISTS "is_tax_inclusive" BOOLEAN NOT NULL DEFAULT false;`,
   ];
 
   for (const sql of statements) {
