@@ -77,7 +77,7 @@ export function CartClient({ initialAddVariant }: CartClientProps) {
     );
   }
 
-  if (!cart || !cart.items.length) {
+  if (!cart?.items?.length) {
     return (
       <section className="container-fluid custom-container py-5">
         <div className="border rounded-1 bg-white p-4">

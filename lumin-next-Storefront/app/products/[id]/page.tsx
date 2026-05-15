@@ -70,12 +70,14 @@ export default async function ProductDetailPage({ params }: PageProps) {
                     )}
                   </div>
       
-                  {/* Description */}
-                  <div className="text-muted mb-4" style={{ lineHeight: "1.7" }}>
+                  <div
+                    className="lumin-product-detail__description text-muted mb-4"
+                    style={{ lineHeight: "1.7" }}
+                  >
                     {descIsHtml ? (
                       <div dangerouslySetInnerHTML={{ __html: product.description }} />
                     ) : (
-                      <p>{product.description}</p>
+                      <p className="mb-0">{product.description}</p>
                     )}
                   </div>
       

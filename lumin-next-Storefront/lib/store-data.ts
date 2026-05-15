@@ -8,6 +8,8 @@ export type Product = {
   oldPrice?: number;
   rating?: number;
   reviewCount?: number;
+  /** ISO timestamp from store API when available (home sorting). */
+  createdAt?: string;
   category: string;
   categoryLabel?: string;
   collection?: string;
@@ -24,6 +26,10 @@ export type BlogPost = {
   category: string;
   author: string;
   excerpt: string;
+  /** Hero / card image (absolute or site-relative URL). */
+  image?: string;
+  /** Plain text or lightly stripped HTML for the single post view. */
+  body?: string;
 };
 
 export const blogPosts: BlogPost[] = [

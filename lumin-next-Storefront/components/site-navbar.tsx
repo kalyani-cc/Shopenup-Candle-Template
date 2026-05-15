@@ -4,7 +4,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { FormEvent, useEffect, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { sdk } from "@/lib/config";
 import { getAuthHeadersClient } from "@/lib/shopenup/client-cookies";
 
@@ -32,43 +32,22 @@ type ProductSearchResponse = {
   }>;
 };
 
-export function SiteNavbar() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const searchWrapRef = useRef<HTMLDivElement | null>(null);
-  const mobileMenuRef = useRef<HTMLDivElement | null>(null);
-  const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
+function useProductSuggestions(searchTerm: string) {
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  // Avoid SSR/CSR hydration mismatch by not reading cookies during render.
-  // Default to /profile and then adjust after mount.
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-  const profileHref = isLoggedIn === false ? "/login?next=/profile" : "/profile";
-
-  useEffect(() => {
-    setIsLoggedIn("authorization" in getAuthHeadersClient());
-  }, []);
-
-  useEffect(() => {
-    setSearchTerm(searchParams.get("q") || "");
-  }, [searchParams]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const q = searchTerm.trim();
     if (!q || q.length < 2) {
       setSuggestions([]);
-      setShowDropdown(false);
-      setSearchLoading(false);
+      setLoading(false);
       return;
     }
 
     let mounted = true;
     const timer = window.setTimeout(async () => {
       try {
-        setSearchLoading(true);
+        setLoading(true);
         const data = await sdk.client.fetch<ProductSearchResponse>("/store/products", {
           method: "GET",
           query: {
@@ -91,15 +70,13 @@ export function SiteNavbar() {
           }));
 
         setSuggestions(nextSuggestions);
-        setShowDropdown(true);
       } catch {
         if (mounted) {
           setSuggestions([]);
-          setShowDropdown(true);
         }
       } finally {
         if (mounted) {
-          setSearchLoading(false);
+          setLoading(false);
         }
       }
     }, 250);
@@ -110,12 +87,69 @@ export function SiteNavbar() {
     };
   }, [searchTerm]);
 
+  return { suggestions, loading };
+}
+
+export function SiteNavbar() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const searchWrapRef = useRef<HTMLDivElement | null>(null);
+  const mobileSearchWrapRef = useRef<HTMLFormElement | null>(null);
+  const mobileMenuRef = useRef<HTMLDivElement | null>(null);
+  const qFromUrl = searchParams.get("q") || "";
+  /** Desktop bar follows the URL `q` (e.g. on /products?q=…). Mobile keeps its own draft — not synced from URL. */
+  const [desktopSearchTerm, setDesktopSearchTerm] = useState(qFromUrl);
+  const [mobileSearchTerm, setMobileSearchTerm] = useState("");
+  const [showDesktopDropdown, setShowDesktopDropdown] = useState(false);
+  const [showMobileDropdown, setShowMobileDropdown] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const { suggestions: desktopSuggestions, loading: desktopSearchLoading } =
+    useProductSuggestions(desktopSearchTerm);
+  const { suggestions: mobileSuggestions, loading: mobileSearchLoading } =
+    useProductSuggestions(mobileSearchTerm);
+
+  // Avoid SSR/CSR hydration mismatch by not reading cookies during render.
+  // Default to /profile and then adjust after mount.
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const profileHref = isLoggedIn === false ? "/login?next=/profile" : "/profile";
+
+  useEffect(() => {
+    setIsLoggedIn("authorization" in getAuthHeadersClient());
+  }, []);
+
+  useEffect(() => {
+    const next = searchParams.get("q") || "";
+    setDesktopSearchTerm(next);
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (desktopSearchTerm.trim().length >= 2) {
+      setShowDesktopDropdown(true);
+    } else {
+      setShowDesktopDropdown(false);
+    }
+  }, [desktopSearchTerm]);
+
+  useEffect(() => {
+    if (mobileSearchTerm.trim().length >= 2) {
+      setShowMobileDropdown(true);
+    } else {
+      setShowMobileDropdown(false);
+    }
+  }, [mobileSearchTerm]);
+
   useEffect(() => {
     const onPointerDown = (event: MouseEvent) => {
-      if (!searchWrapRef.current?.contains(event.target as Node)) {
-        setShowDropdown(false);
+      const t = event.target as Node;
+      if (!searchWrapRef.current?.contains(t)) {
+        setShowDesktopDropdown(false);
       }
-      if (mobileMenuOpen && !mobileMenuRef.current?.contains(event.target as Node)) {
+      if (!mobileSearchWrapRef.current?.contains(t)) {
+        setShowMobileDropdown(false);
+      }
+      if (mobileMenuOpen && !mobileMenuRef.current?.contains(t)) {
         setMobileMenuOpen(false);
       }
     };
@@ -125,19 +159,42 @@ export function SiteNavbar() {
     };
   }, [mobileMenuOpen]);
 
+  useEffect(() => {
+    if (!mobileMenuOpen) {
+      setShowMobileDropdown(false);
+    }
+  }, [mobileMenuOpen]);
+
   const submitSearch = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formValue = String(new FormData(e.currentTarget).get("q") || "").trim();
-    runSearch(formValue);
+    navigateToSearch(formValue);
   };
 
   const navigateToSearch = (q: string) => {
-    const target = q ? `/products?q=${encodeURIComponent(q)}` : "/products";
+    const trimmed = q.trim();
+    if (pathname === "/products") {
+      const params = new URLSearchParams(searchParams.toString());
+      if (trimmed) {
+        params.set("q", trimmed);
+      } else {
+        params.delete("q");
+      }
+      const s = params.toString();
+      router.push(s ? `/products?${s}` : "/products");
+      return;
+    }
+    const target = trimmed ? `/products?q=${encodeURIComponent(trimmed)}` : "/products";
     router.push(target);
   };
 
-  const runSearch = (value?: string) => {
-    const q = (value ?? searchTerm).trim();
+  const runDesktopSearch = (value?: string) => {
+    const q = (value ?? desktopSearchTerm).trim();
+    navigateToSearch(q);
+  };
+
+  const runMobileSearch = (value?: string) => {
+    const q = (value ?? mobileSearchTerm).trim();
     navigateToSearch(q);
   };
 
@@ -163,7 +220,8 @@ export function SiteNavbar() {
             <div className="flex-shrink-0 lumin-navbar-logo-col">
               <div className="header-mid-logo text-md-center mb-0">
                 <Link href="/">
-                  <Image src="/assets/images/logo.png" alt="Lumin" width={200} height={38} />
+                  {/* <Image src="/assets/images/logo.png" alt="Lumin" width={200} height={38} /> */}
+                  <h3>Arabian Aura</h3>
                 </Link>
               </div>
             </div>
@@ -187,38 +245,38 @@ export function SiteNavbar() {
                     <input
                       type="search"
                       name="q"
-                      value={searchTerm}
+                      value={desktopSearchTerm}
                       onFocus={() => {
-                        if (searchTerm.trim().length >= 2) {
-                          setShowDropdown(true);
+                        if (desktopSearchTerm.trim().length >= 2) {
+                          setShowDesktopDropdown(true);
                         }
                       }}
-                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onChange={(e) => setDesktopSearchTerm(e.target.value)}
                       placeholder="Search products..."
                     />
-                    <button type="button" aria-label="Search" onClick={() => runSearch()}>
+                    <button type="button" aria-label="Search" onClick={() => runDesktopSearch()}>
                       <i className="lastudioicon-zoom-1" />
                     </button>
                   </div>
                 </form>
               </div>
-              {showDropdown && searchTerm.trim().length >= 2 ? (
+              {showDesktopDropdown && desktopSearchTerm.trim().length >= 2 ? (
                 <div
                   className="position-absolute bg-white border rounded shadow-sm p-2"
                   style={{ width: "320px", right: 0, top: "100%", marginTop: "8px", zIndex: 60 }}
                 >
-                  {searchLoading ? (
+                  {desktopSearchLoading ? (
                     <p className="px-2 py-2 mb-0 text-secondary">Searching...</p>
-                  ) : suggestions.length ? (
+                  ) : desktopSuggestions.length ? (
                     <>
                       <div className="d-flex flex-column gap-1">
-                        {suggestions.map((item) => (
+                        {desktopSuggestions.map((item) => (
                           <Link
                             key={item.id}
                             href={`/products/${encodeURIComponent(item.slug)}`}
                             onClick={() => {
-                              setShowDropdown(false);
-                              setSearchTerm(item.name);
+                              setShowDesktopDropdown(false);
+                              setDesktopSearchTerm(item.name);
                             }}
                             className="d-flex align-items-center gap-2 text-dark text-decoration-none p-2 rounded"
                           >
@@ -243,8 +301,8 @@ export function SiteNavbar() {
                       <button
                         type="button"
                         onClick={() => {
-                          setShowDropdown(false);
-                          navigateToSearch(searchTerm.trim());
+                          setShowDesktopDropdown(false);
+                          navigateToSearch(desktopSearchTerm.trim());
                         }}
                         className="btn btn-link text-decoration-none p-2 w-100 text-start"
                       >
@@ -269,13 +327,13 @@ export function SiteNavbar() {
                   <li>
                     <Link href="/wishlist" aria-label="Wishlist">
                       <i className="lastudioicon-heart-2" />
-                      <span className="badge"></span>
+                      <span className="badge" style={{ display: "none" }} suppressHydrationWarning />
                     </Link>
                   </li>
                   <li>
                     <Link href="/cart" aria-label="Cart">
                       <i className="lastudioicon-bag-20" />
-                      <span className="badge"></span>
+                      <span className="badge" style={{ display: "none" }} suppressHydrationWarning />
                     </Link>
                   </li>
                 </ul>
@@ -285,38 +343,42 @@ export function SiteNavbar() {
 
           {mobileMenuOpen ? (
             <div className="lumin-navbar-mobile-panel d-lg-none">
-              <form className="lumin-navbar-mobile-search" onSubmit={submitSearch}>
+              <form
+                ref={mobileSearchWrapRef}
+                className="lumin-navbar-mobile-search"
+                onSubmit={submitSearch}
+              >
                 <div className="meta-search meta-search--dark">
                   <input
                     type="search"
                     name="q"
-                    value={searchTerm}
+                    value={mobileSearchTerm}
                     onFocus={() => {
-                      if (searchTerm.trim().length >= 2) {
-                        setShowDropdown(true);
+                      if (mobileSearchTerm.trim().length >= 2) {
+                        setShowMobileDropdown(true);
                       }
                     }}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(e) => setMobileSearchTerm(e.target.value)}
                     placeholder="Search products..."
                   />
                   <button type="submit" aria-label="Search">
                     <i className="lastudioicon-zoom-1" />
                   </button>
                 </div>
-                {showDropdown && searchTerm.trim().length >= 2 ? (
+                {showMobileDropdown && mobileSearchTerm.trim().length >= 2 ? (
                   <div className="lumin-navbar-mobile-suggestions">
-                    {searchLoading ? (
+                    {mobileSearchLoading ? (
                       <p className="px-2 py-2 mb-0 text-secondary">Searching...</p>
-                    ) : suggestions.length ? (
+                    ) : mobileSuggestions.length ? (
                       <>
                         <div className="d-flex flex-column gap-1">
-                          {suggestions.map((item) => (
+                          {mobileSuggestions.map((item) => (
                             <Link
                               key={`mobile-suggestion-${item.id}`}
                               href={`/products/${encodeURIComponent(item.slug)}`}
                               onClick={() => {
-                                setShowDropdown(false);
-                                setSearchTerm(item.name);
+                                setShowMobileDropdown(false);
+                                setMobileSearchTerm(item.name);
                                 setMobileMenuOpen(false);
                               }}
                               className="d-flex align-items-center gap-2 text-dark text-decoration-none p-2 rounded"
@@ -342,8 +404,8 @@ export function SiteNavbar() {
                         <button
                           type="button"
                           onClick={() => {
-                            setShowDropdown(false);
-                            runSearch();
+                            setShowMobileDropdown(false);
+                            runMobileSearch();
                           }}
                           className="btn btn-link text-decoration-none p-2 w-100 text-start"
                         >

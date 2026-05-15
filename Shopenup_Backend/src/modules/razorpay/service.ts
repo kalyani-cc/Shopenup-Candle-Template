@@ -1,4 +1,4 @@
-import Razorpay from "razorpay";  
+import Razorpay from "razorpay";
 
 interface RazorpayOptions {
   key_id: string;
@@ -8,6 +8,85 @@ interface RazorpayOptions {
   manual_expiry_period?: number;
   refund_speed?: "normal" | "optimum";
   webhook_secret?: string;
+}
+
+/** Razorpay SDK errors are often `{ statusCode, error: { description, code } }` — not `Error`. */
+function formatRazorpayError(error: unknown): string {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  const e = error as Record<string, unknown> & {
+    error?: { description?: string; reason?: string; code?: string };
+    statusCode?: number;
+  };
+  if (typeof e?.message === "string" && e.message.trim()) {
+    return e.message;
+  }
+  if (e?.error?.description) {
+    return e.error.description;
+  }
+  if (e?.error?.reason) {
+    return e.error.reason;
+  }
+  if (typeof error === "string") {
+    return error;
+  }
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
+  }
+}
+
+/** Medusa/Shopenup may pass amount as number, string, BigNumber-like, or `{ value, precision }`. */
+function parseMajorAmount(raw: unknown): number {
+  if (raw == null) {
+    return NaN;
+  }
+  if (typeof raw === "number" && Number.isFinite(raw)) {
+    return raw;
+  }
+  if (typeof raw === "string") {
+    const n = parseFloat(raw);
+    return Number.isFinite(n) ? n : NaN;
+  }
+  if (typeof raw === "object" && raw !== null) {
+    const o = raw as Record<string, unknown>;
+    if (typeof o.numeric_ === "number" && Number.isFinite(o.numeric_)) {
+      return o.numeric_;
+    }
+    if (o.raw_ && typeof o.raw_ === "object" && o.raw_ !== null) {
+      const r = o.raw_ as { value?: unknown };
+      if (r.value != null) {
+        const n = parseFloat(String(r.value));
+        if (Number.isFinite(n)) {
+          return n;
+        }
+      }
+    }
+    if (typeof o.float === "number" && Number.isFinite(o.float)) {
+      return o.float;
+    }
+    if (o.value != null) {
+      const valueStr = String(o.value);
+      const n = parseFloat(valueStr);
+      if (!Number.isFinite(n)) {
+        return NaN;
+      }
+      const prec =
+        typeof o.precision === "number" && o.precision >= 0 ? o.precision : undefined;
+      if (
+        prec !== undefined &&
+        Number.isInteger(n) &&
+        !valueStr.includes(".") &&
+        !valueStr.toLowerCase().includes("e")
+      ) {
+        return n / Math.pow(10, prec);
+      }
+      return n;
+    }
+  }
+  return NaN;
 }
 
 class RazorpayService {
@@ -32,19 +111,26 @@ class RazorpayService {
 
   async createPayment(data: any): Promise<any> {
     try {
+      const amountMajor = parseMajorAmount(data?.amount);
+      if (!Number.isFinite(amountMajor) || amountMajor <= 0) {
+        throw new Error(
+          `Invalid payment amount for Razorpay order: ${JSON.stringify(data?.amount)}. Expected a positive number (major units, e.g. INR).`
+        );
+      }
+
       const orderOptions = {
-        amount: data.amount * 100, // Convert to paise
-        currency: data.currency || "INR",
+        amount: Math.round(amountMajor * 100), // paise
+        currency: (data.currency || "INR").toString().toUpperCase(),
         receipt: data.receipt || `receipt_${Date.now()}`,
         notes: data.notes || {},
       };
 
       const order = await this.razorpay.orders.create(orderOptions);
-      
+
       return {
         id: order.id,
         status: "pending",
-        amount: data.amount,
+        amount: amountMajor,
         currency: data.currency || "INR",
         client_secret: order.id,
         data: {
@@ -53,7 +139,9 @@ class RazorpayService {
         },
       };
     } catch (error) {
-      throw new Error(`Razorpay payment creation failed: ${error.message}`);
+      const msg = formatRazorpayError(error);
+      console.error("[Razorpay] createPayment failed:", error);
+      throw new Error(`Razorpay payment creation failed: ${msg}`);
     }
   }
 
@@ -591,28 +679,36 @@ class RazorpayService {
   // Required by ShopenUp for payment session management
   async createPaymentSession(data: any): Promise<any> {
     try {
-      //console.log('Razorpay createPaymentSession called with data:', JSON.stringify(data, null, 2));
-      
-      // Handle different data structures that might be passed
-      const amount = data.amount || data.total || 1000; // Default to 10 INR if no amount
-      const currency = data.currency || data.currency_code || "INR";
-      
+      const amountMajor = parseMajorAmount(
+        data?.amount ?? data?.total ?? data?.amount_total
+      );
+      if (!Number.isFinite(amountMajor) || amountMajor <= 0) {
+        throw new Error(
+          `Invalid payment amount for Razorpay session: ${JSON.stringify({
+            amount: data?.amount,
+            total: data?.total,
+            amount_total: data?.amount_total,
+          })}`
+        );
+      }
+      const currency = (data.currency || data.currency_code || "INR")
+        .toString()
+        .toUpperCase();
+
       const orderOptions = {
-        amount: Number(amount) * 100, // Convert to paise
-        currency: currency,
+        amount: Math.round(amountMajor * 100),
+        currency,
         receipt: data.receipt || `receipt_${Date.now()}`,
-        notes: data.notes || { source: 'shopenup' },
+        notes: data.notes || { source: "shopenup" },
       };
 
-      //console.log('Creating Razorpay order with options:', orderOptions);
       const order = await this.razorpay.orders.create(orderOptions);
-      //console.log('Razorpay order created:', order);
-      
+
       return {
         id: `payses_${Date.now()}`,
         status: "pending",
-        amount: Number(amount),
-        currency: currency,
+        amount: amountMajor,
+        currency,
         data: {
           razorpay_order_id: order.id,
           razorpay_key_id: this.options.key_id,
@@ -625,8 +721,8 @@ class RazorpayService {
         },
       };
     } catch (error) {
-      console.error('Razorpay payment session creation failed:', error);
-      throw new Error(`Razorpay payment session creation failed: ${error.message}`);
+      console.error("Razorpay payment session creation failed:", error);
+      throw new Error(`Razorpay payment session creation failed: ${formatRazorpayError(error)}`);
     }
   }
 

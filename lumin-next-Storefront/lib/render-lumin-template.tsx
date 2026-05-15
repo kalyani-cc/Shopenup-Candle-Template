@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import Script from "next/script";
 import { notFound } from "next/navigation";
+import { LuminTemplateScripts } from "@/components/lumin-template-scripts";
 import { listFooterProductCategories, type FooterCategory } from "@/lib/shopenup/categories";
 
 const TEMPLATE_ROOT = path.join(process.cwd(), "templates", "lumin");
@@ -233,56 +233,7 @@ export function renderTransformedLuminMarkup(pageMarkup: string, opts?: { disabl
   return (
     <>
       <div dangerouslySetInnerHTML={{ __html: pageMarkup }} />
-      <Script src="/assets/js/bootstrap.bundle.min.js" strategy="afterInteractive" />
-      <Script src="/assets/js/swiper-bundle.min.js" strategy="afterInteractive" />
-      <Script src="/assets/js/masonry.pkgd.min.js" strategy="afterInteractive" />
-      <Script src="/assets/js/glightbox.min.js" strategy="afterInteractive" />
-      <Script src="/assets/js/nice-select2.js" strategy="afterInteractive" />
-      {!disableTemplateMainJs ? (
-        <Script id="lumin-main-loader" strategy="afterInteractive">
-          {`
-            (function () {
-              if (window.__luminMainLoaded) return;
-              var started = false;
-              var tries = 0;
-              var maxTries = 120; // ~12s at 100ms
-              function ready() {
-                return typeof window.Swiper !== "undefined";
-              }
-              function loadMain() {
-                if (window.__luminMainLoaded || started) return;
-                if (!ready()) return;
-                started = true;
-                var script = document.createElement("script");
-                script.src = "/assets/js/main.js";
-                script.async = false;
-                script.onload = function () {
-                  window.__luminMainLoaded = true;
-                };
-                script.onerror = function () {
-                  started = false;
-                };
-                document.body.appendChild(script);
-              }
-              var timer = setInterval(function () {
-                tries += 1;
-                loadMain();
-                if (window.__luminMainLoaded || tries >= maxTries) {
-                  clearInterval(timer);
-                }
-              }, 100);
-              loadMain();
-            })();
-          `}
-        </Script>
-      ) : null}
+      <LuminTemplateScripts disableTemplateMainJs={disableTemplateMainJs} />
     </>
   );
-}
-
-export async function renderLuminTemplate(templateFile: string) {
-  const html = await loadLuminTemplate(templateFile);
-  let pageMarkup = transformLuminTemplateMarkup(html);
-  pageMarkup = await finalizeLuminTemplateMarkup(pageMarkup);
-  return renderTransformedLuminMarkup(pageMarkup);
 }

@@ -1,5 +1,6 @@
 import { sdk } from "@/lib/config";
 import { type Product } from "@/lib/store-data";
+import { listStoreCollections, type StoreCollectionListItem } from "@/lib/shopenup/collections";
 import { getCompleteHeaders } from "@/lib/shopenup/cookies";
 
 type StoreCollection = {
@@ -17,6 +18,7 @@ type StoreCategory = {
 
 type StoreRegion = {
   id: string;
+  countries?: Array<{ iso_2?: string }>;
 };
 
 type StoreProduct = {
@@ -26,10 +28,12 @@ type StoreProduct = {
   description?: string;
   thumbnail?: string;
   images?: Array<{ url?: string }>;
+  created_at?: string;
   collection?: StoreCollection | null;
   categories?: StoreCategory[];
   variants?: Array<{
     id?: string;
+    variant_id?: string;
     calculated_price?:
       | number
       | {
@@ -86,6 +90,46 @@ function regionIdFromEnv(): string | undefined {
   return id || undefined;
 }
 
+/** ISO-2 country hint from env (e.g. Medusa `NEXT_PUBLIC_DEFAULT_REGION`). */
+function defaultRegionCountryIsoFromEnv(): string | undefined {
+  const iso = process.env.NEXT_PUBLIC_DEFAULT_REGION?.trim().toLowerCase();
+  return iso || undefined;
+}
+
+function pickRegionId(regions: StoreRegion[]): string | undefined {
+  if (!regions.length) {
+    return undefined;
+  }
+  const iso = defaultRegionCountryIsoFromEnv();
+  if (iso) {
+    const match = regions.find((r) =>
+      (r.countries || []).some((c) => (c.iso_2 || "").toLowerCase() === iso)
+    );
+    if (match?.id) {
+      return match.id;
+    }
+  }
+  return regions[0]?.id;
+}
+
+function firstVariantId(product: StoreProduct): string | undefined {
+  const list = product.variants;
+  if (!Array.isArray(list) || !list.length) {
+    return undefined;
+  }
+  for (const v of list) {
+    const raw = v.id ?? v.variant_id;
+    if (raw === undefined || raw === null) {
+      continue;
+    }
+    const s = String(raw).trim();
+    if (s) {
+      return s;
+    }
+  }
+  return undefined;
+}
+
 async function getDefaultRegionId(): Promise<string | undefined> {
   const fromEnv = regionIdFromEnv();
   if (fromEnv) {
@@ -104,7 +148,8 @@ async function getDefaultRegionId(): Promise<string | undefined> {
       headers: await getCompleteHeaders(),
     });
 
-    const regionId = response.regions?.[0]?.id;
+    const regions = response.regions || [];
+    const regionId = pickRegionId(regions);
     if (regionId) {
       cachedRegionId = regionId;
       return regionId;
@@ -117,10 +162,10 @@ async function getDefaultRegionId(): Promise<string | undefined> {
 }
 
 const PRODUCT_FIELDS_WITH_CALCULATED_PRICE =
-  "*categories,*collection,*variants.calculated_price,*variants.prices,*variants.id,thumbnail,images,title,description,handle";
+  "*categories,*collection,*variants.calculated_price,*variants.prices,*variants.id,thumbnail,images,title,description,handle,created_at";
 
 const PRODUCT_FIELDS_WITHOUT_CALCULATED_PRICE =
-  "*categories,*collection,*variants.prices,*variants.id,thumbnail,images,title,description,handle";
+  "*categories,*collection,*variants.prices,*variants.id,thumbnail,images,title,description,handle,created_at";
 
 function mapPrice(product: StoreProduct): { price: number; oldPrice?: number } {
   const variant = product.variants?.[0];
@@ -175,7 +220,7 @@ function mapProduct(product: StoreProduct): Product {
   return {
     id: product.id,
     slug: product.handle || product.id,
-    variantId: product.variants?.[0]?.id,
+    variantId: firstVariantId(product),
     name: product.title || "Untitled Product",
     category: categorySlug,
     categoryLabel,
@@ -186,6 +231,7 @@ function mapProduct(product: StoreProduct): Product {
     oldPrice: mappedPrice.oldPrice,
     rating: 0,
     reviewCount: 0,
+    createdAt: product.created_at,
     image,
   };
 }
@@ -193,6 +239,10 @@ function mapProduct(product: StoreProduct): Product {
 type FetchStoreProductsOptions = {
   limit: number;
   handle?: string;
+  /** Medusa list order, e.g. `-created_at` */
+  order?: string;
+  /** Filter products in this collection (store API `collection_id`). */
+  collectionId?: string;
 };
 
 async function fetchStoreProductsFromApi(options: FetchStoreProductsOptions): Promise<StoreProduct[]> {
@@ -205,6 +255,8 @@ async function fetchStoreProductsFromApi(options: FetchStoreProductsOptions): Pr
       query: {
         limit,
         ...(options.handle ? { handle: options.handle } : {}),
+        ...(options.order ? { order: options.order } : {}),
+        ...(options.collectionId ? { collection_id: options.collectionId } : {}),
         region_id: regionId,
         fields: PRODUCT_FIELDS_WITH_CALCULATED_PRICE,
       },
@@ -217,6 +269,8 @@ async function fetchStoreProductsFromApi(options: FetchStoreProductsOptions): Pr
       query: {
         limit,
         ...(options.handle ? { handle: options.handle } : {}),
+        ...(options.order ? { order: options.order } : {}),
+        ...(options.collectionId ? { collection_id: options.collectionId } : {}),
         fields: PRODUCT_FIELDS_WITHOUT_CALCULATED_PRICE,
       },
       next,
@@ -369,9 +423,23 @@ export async function listDistinctCategoriesFromProducts(limit = 16): Promise<
   }
 }
 
-export async function listProducts(limit = 100): Promise<Product[]> {
+function parseCreatedMs(iso?: string): number {
+  if (!iso) return 0;
+  const t = Date.parse(iso);
+  return Number.isFinite(t) ? t : 0;
+}
+
+async function fetchAndMapProducts(
+  limit: number,
+  opts?: { handle?: string; order?: string; collectionId?: string }
+): Promise<Product[]> {
   try {
-    const raw = await fetchStoreProductsFromApi({ limit });
+    const raw = await fetchStoreProductsFromApi({
+      limit,
+      handle: opts?.handle,
+      order: opts?.order,
+      collectionId: opts?.collectionId,
+    });
     const products = raw.map(mapProduct);
     const ratingsMap = await fetchRatingsForProductIds(
       products.map((p) => p.id).filter((id): id is string => Boolean(id))
@@ -390,6 +458,136 @@ export async function listProducts(limit = 100): Promise<Product[]> {
   } catch {
     return [];
   }
+}
+
+export type HomeHighlightSectionMeta = {
+  title: string;
+  collectionHandle: string;
+};
+
+function pickCollectionByEnv(
+  collections: StoreCollectionListItem[],
+  envHandle: string | undefined,
+  fallbackIndex: number
+): StoreCollectionListItem | undefined {
+  const raw = envHandle?.trim().toLowerCase();
+  if (raw) {
+    const found = collections.find((c) => c.handle.toLowerCase() === raw);
+    if (found) {
+      return found;
+    }
+  }
+  if (!collections.length) {
+    return undefined;
+  }
+  return collections[fallbackIndex] ?? collections[0];
+}
+
+function pickSecondCollection(
+  collections: StoreCollectionListItem[],
+  first: StoreCollectionListItem,
+  envHandle: string | undefined,
+  fallbackIndex: number
+): StoreCollectionListItem {
+  const fromEnv = pickCollectionByEnv(collections, envHandle, fallbackIndex);
+  if (fromEnv && fromEnv.id !== first.id) {
+    return fromEnv;
+  }
+  const distinct = collections.find((c) => c.id !== first.id);
+  if (distinct) {
+    return distinct;
+  }
+  return first;
+}
+
+function sliceNewArrivals(products: Product[], eachLimit: number): Product[] {
+  const byNew = [...products].sort((a, b) => parseCreatedMs(b.createdAt) - parseCreatedMs(a.createdAt));
+  return byNew.slice(0, eachLimit);
+}
+
+function sliceBestSelling(products: Product[], newArrivals: Product[], eachLimit: number): Product[] {
+  const byBest = [...products].sort((a, b) => {
+    const rc = (b.reviewCount ?? 0) - (a.reviewCount ?? 0);
+    if (rc !== 0) return rc;
+    const rt = (b.rating ?? 0) - (a.rating ?? 0);
+    if (rt !== 0) return rt;
+    return parseCreatedMs(a.createdAt) - parseCreatedMs(b.createdAt);
+  });
+  const newIds = new Set(newArrivals.map((p) => p.id).filter(Boolean));
+  const bestPrimary = byBest.filter((p) => !p.id || !newIds.has(p.id));
+  return bestPrimary.length >= eachLimit
+    ? bestPrimary.slice(0, eachLimit)
+    : [...bestPrimary, ...byBest.filter((p) => p.id && newIds.has(p.id))].slice(0, eachLimit);
+}
+
+/**
+ * Home page: two product strips, each filled from a **store collection** (no “best seller” ranking).
+ *
+ * Collections:
+ * - `NEXT_PUBLIC_HOME_COLLECTION_1_HANDLE` / `NEXT_PUBLIC_HOME_COLLECTION_2_HANDLE` (preferred), or
+ * - `NEXT_PUBLIC_HOME_NEW_ARRIVAL_COLLECTION_HANDLE` / `NEXT_PUBLIC_HOME_BEST_SELLING_COLLECTION_HANDLE` (legacy aliases), or
+ * - first / second distinct collection from the store list.
+ *
+ * Products are the first `eachLimit` items from each collection (newest first). If the store has no
+ * collections, falls back to global product list with the previous new-arrival / best-seller heuristics.
+ */
+export async function getHomeProductHighlights(eachLimit = 8): Promise<{
+  newArrivals: Product[];
+  bestSelling: Product[];
+  newArrivalSection?: HomeHighlightSectionMeta;
+  bestSellingSection?: HomeHighlightSectionMeta;
+}> {
+  const collections = await listStoreCollections(24);
+
+  if (!collections.length) {
+    const products = await fetchAndMapProducts(100, { order: "-created_at" });
+    const newArrivals = sliceNewArrivals(products, eachLimit);
+    const bestSelling = sliceBestSelling(products, newArrivals, eachLimit);
+    return { newArrivals, bestSelling };
+  }
+
+  const env1 =
+    process.env.NEXT_PUBLIC_HOME_COLLECTION_1_HANDLE?.trim() ||
+    process.env.NEXT_PUBLIC_HOME_NEW_ARRIVAL_COLLECTION_HANDLE?.trim();
+  const env2 =
+    process.env.NEXT_PUBLIC_HOME_COLLECTION_2_HANDLE?.trim() ||
+    process.env.NEXT_PUBLIC_HOME_BEST_SELLING_COLLECTION_HANDLE?.trim();
+
+  const head = collections[0]!;
+  const colA = pickCollectionByEnv(collections, env1, 0) ?? head;
+  const colB = pickSecondCollection(collections, colA, env2, 1);
+
+  const fetchLimit = Math.max(eachLimit, 24);
+
+  let poolA: Product[];
+  let poolB: Product[];
+  if (colA.id === colB.id) {
+    const shared = await fetchAndMapProducts(fetchLimit, {
+      collectionId: colA.id,
+      order: "-created_at",
+    });
+    poolA = shared;
+    poolB = shared;
+  } else {
+    [poolA, poolB] = await Promise.all([
+      fetchAndMapProducts(fetchLimit, { collectionId: colA.id, order: "-created_at" }),
+      fetchAndMapProducts(fetchLimit, { collectionId: colB.id, order: "-created_at" }),
+    ]);
+  }
+
+  const newArrivals = poolA.slice(0, eachLimit);
+  const bestSelling = poolB.slice(0, eachLimit);
+
+  return {
+    newArrivals,
+    bestSelling,
+    newArrivalSection: { title: colA.title, collectionHandle: colA.handle },
+    bestSellingSection: { title: colB.title, collectionHandle: colB.handle },
+  };
+}
+
+export async function listProducts(limit = 100): Promise<Product[]> {
+  return fetchAndMapProducts(limit);
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
