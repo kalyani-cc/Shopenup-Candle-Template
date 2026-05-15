@@ -37,7 +37,7 @@ body {
   white-space: nowrap;
 }
 
-.header__main--menu.lumin-store-nav-one-row .menu-items-list > li {
+.header__main--menu.lumin-store-nav-one-row .menu-items-list>li {
   flex-shrink: 0;
 }
 
@@ -55,6 +55,7 @@ body {
 }
 
 @media (min-width: 992px) {
+
   /* Only index.html uses `header__middle`; merged single-row bar padding */
   .header__middle .lumin-header-one-row-main {
     margin-bottom: 0;
@@ -212,7 +213,7 @@ body {
     gap: 0.45rem !important;
   }
 
-  .lumin-navbar-main-row .menu-items-list > li > a span {
+  .lumin-navbar-main-row .menu-items-list>li>a span {
     font-size: 0.72rem;
     letter-spacing: 0.02em;
   }
@@ -225,7 +226,7 @@ body {
 
 .card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
 }
 
 .card img {
@@ -242,7 +243,7 @@ body {
   content: none !important;
 }
 
-.lumin-order-details-page .lumin-order-breadcrumb.breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+.lumin-order-details-page .lumin-order-breadcrumb.breadcrumb .breadcrumb-item+.breadcrumb-item::before {
   content: "/" !important;
   float: none;
   padding-right: 0.5rem;
@@ -469,6 +470,48 @@ body {
   font-size: 0.95rem;
   line-height: 1.6;
   color: #494949;
+}
+
+.lumin-page-content .lumin-about-page .lumin-about-story.section-padding {
+  padding-top: clamp(2.25rem, 5vw, 3rem);
+  padding-bottom: clamp(2.25rem, 5vw, 3rem);
+  background-color: #f9f7f5;
+}
+
+.lumin-page-content .lumin-about-page .lumin-about-story .custom-container {
+  max-width: min(100%, 1080px);
+}
+
+.lumin-page-content .lumin-about-page .lumin-about-story__image img {
+  border-radius: 12px;
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.lumin-page-content .lumin-about-page .lumin-about-story__title {
+  font-family: "Playfair Display", serif;
+  font-size: clamp(1.65rem, 3.5vw, 2.25rem);
+  margin-bottom: 1rem;
+  color: #1a1a1a;
+}
+
+.lumin-page-content .lumin-about-page .lumin-about-story__content p {
+  font-size: 1rem;
+  line-height: 1.75;
+  color: #494949;
+  margin-bottom: 1rem;
+}
+
+.lumin-page-content .lumin-about-page .lumin-about-story__content p:last-of-type {
+  margin-bottom: 1.5rem;
+}
+
+.lumin-page-content .lumin-about-page .lumin-about-instagram__heading {
+  font-size: clamp(1.35rem, 3vw, 1.75rem);
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 0;
 }
 
 .lumin-page-content .lumin-about-page .about-video.lumin-about-video {
@@ -700,7 +743,7 @@ body {
   margin-bottom: 0;
 }
 
-.lumin-order-details-page .lumin-order-line-item + .lumin-order-line-item {
+.lumin-order-details-page .lumin-order-line-item+.lumin-order-line-item {
   border-top: 1px solid #eee;
 }
 
@@ -846,9 +889,9 @@ body {
 }
 
 /* Profile tab panes: keep same horizontal gutters across Orders/Address/Account Detail. */
-.lumin-page-content .my-account-tab .tab-pane > .my-account-orders,
-.lumin-page-content .my-account-tab .tab-pane > .my-account-address,
-.lumin-page-content .my-account-tab .tab-pane > .my-account-detail {
+.lumin-page-content .my-account-tab .tab-pane>.my-account-orders,
+.lumin-page-content .my-account-tab .tab-pane>.my-account-address,
+.lumin-page-content .my-account-tab .tab-pane>.my-account-detail {
   width: 100%;
   max-width: min(100%, 72rem);
   margin-left: auto;
@@ -871,9 +914,9 @@ body {
 }
 
 /* Header wishlist/cart count badges: keep centered and anchored to icon corner */
-.header-mid-meta__item li > a,
-.meta-items-list li > a,
-.meta-items-list li > button {
+.header-mid-meta__item li>a,
+.meta-items-list li>a,
+.meta-items-list li>button {
   position: relative;
 }
 
@@ -1270,7 +1313,7 @@ body {
 
 .product-image-card:hover {
   transform: scale(1.02);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
 
 .product-info h1 {
