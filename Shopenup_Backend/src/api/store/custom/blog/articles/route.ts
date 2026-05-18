@@ -2,7 +2,8 @@ import { ShopenupRequest, ShopenupResponse } from "@shopenup/framework/http";
 
 /**
  * Public store endpoint: published blog articles (same source as admin `/admin/blog/articles`).
- * GET /store/custom/blog/articles?limit=&offset=&slug=
+ * GET /store/custom/blog/articles?limit=&offset=&slug=&draft=true|false
+ * Omit `draft` to return all non-deleted articles (storefront filters published vs draft client-side).
  */
 export async function GET(req: ShopenupRequest, res: ShopenupResponse) {
   try {
@@ -17,11 +18,16 @@ export async function GET(req: ShopenupRequest, res: ShopenupResponse) {
     const slugParam = url.searchParams.get("slug")?.trim();
     const limit = Math.min(Math.max(Number(url.searchParams.get("limit")) || 50, 1), 100);
     const offset = Math.max(Number(url.searchParams.get("offset")) || 0, 0);
+    const draftParam = url.searchParams.get("draft");
 
     const baseFilters: Record<string, unknown> = {
-      draft: false,
       deleted_at: null,
     };
+    if (draftParam === "false") {
+      baseFilters.draft = false;
+    } else if (draftParam === "true") {
+      baseFilters.draft = true;
+    }
 
     const fields = [
       "id",

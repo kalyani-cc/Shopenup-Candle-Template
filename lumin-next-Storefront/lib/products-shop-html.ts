@@ -300,7 +300,6 @@ function buildProductCard(product: Product, view: "grid" | "list", state: Produc
                   data-variant-id="${variantId}"
                   aria-label="cart"
                 ><i class="lastudioicon-shopping-cart-3"></i></button>
-                <a href="/products" aria-label="compare"><i class="lastudioicon-ic_compare_arrows_24px"></i></a>
                 <a href="${href}" aria-label="zoom-in"><i class="lastudioicon-search-zoom-in"></i></a>
               </div>
             </div>

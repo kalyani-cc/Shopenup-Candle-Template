@@ -27,6 +27,25 @@ body {
   padding: 0;
 }
 
+/* Sticky footer: content grows, footer sits at bottom without a huge empty band. */
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+main.lumin-page-content {
+  flex: 1 0 auto;
+  width: 100%;
+}
+
+/* Template pages wrap body in an inner <main>; keep it full-width block layout. */
+.lumin-page-content > div > main {
+  display: block !important;
+  width: 100% !important;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -682,14 +701,14 @@ body {
 
 .lumin-blog-post-page .lumin-blog-post-hero {
   width: 100%;
-  max-width: 320px;
+  max-width: min(100%, 560px);
   margin-left: auto;
   margin-right: auto;
   border-radius: 12px;
   overflow: visible;
   background: #f4f2ef;
-  padding: 10px;
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.07);
+  padding: 12px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
   /* Theme `.blog-single__image` uses padding-bottom + absolute img — breaks narrow columns */
   margin-top: 0 !important;
   padding-bottom: 0 !important;
@@ -717,10 +736,14 @@ body {
   width: 100%;
   max-width: 100%;
   height: auto !important;
-  max-height: min(72vh, 520px);
+  max-height: min(85vh, 680px);
   object-fit: contain !important;
   object-position: center;
   border-radius: 8px;
+}
+
+.lumin-blog-post-page .lumin-blog-post-read-more-btn {
+  min-width: 8.5rem;
 }
 
 .lumin-blog-post-page .lumin-blog-post-prose {
@@ -905,6 +928,215 @@ body {
   max-width: min(100%, 72rem);
   margin-left: auto;
   margin-right: auto;
+}
+
+.lumin-profile-addresses__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.lumin-address-form-panel {
+  padding: 1.25rem;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.lumin-address-form__actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.lumin-address-form__check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.lumin-address-card {
+  height: 100%;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.lumin-address-card__body {
+  font-style: normal;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  margin-bottom: 0.75rem;
+}
+
+.lumin-address-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.lumin-address-card__badges .badge {
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.lumin-address-card__actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.lumin-address-card__icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid #e0ddd8;
+  border-radius: 6px;
+  background: #fff;
+  color: #363636;
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.lumin-address-card__icon-btn:hover:not(:disabled) {
+  border-color: #c9c5be;
+  background: #faf9f7;
+}
+
+.lumin-address-card__icon-btn--danger {
+  color: #dc2626;
+  border-color: #f0d4d4;
+}
+
+.lumin-address-card__icon-btn--danger:hover:not(:disabled) {
+  background: #fff5f5;
+  border-color: #e8a8a8;
+}
+
+.lumin-address-card__icon-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.lumin-checkout-address-picker {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.lumin-checkout-address-picker__title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.lumin-checkout-address-picker__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.lumin-checkout-address-picker__footer {
+  margin: 0.75rem 0 0;
+  font-size: 0.8125rem;
+}
+
+.lumin-checkout-address-picker__footer a {
+  color: #c45c3e;
+  text-decoration: underline;
+}
+
+.lumin-saved-address-item {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lumin-saved-address-item__radio {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.lumin-saved-address-item__card {
+  display: block;
+  position: relative;
+  margin: 0;
+  padding: 0.85rem 1rem 0.85rem 2.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 400;
+  line-height: 1.45;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.lumin-saved-address-item__card::before {
+  content: "";
+  position: absolute;
+  left: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  border: 2px solid #999;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.lumin-saved-address-item__radio:checked + .lumin-saved-address-item__card {
+  border-color: #c45c3e;
+  background: #fef8f6;
+}
+
+.lumin-saved-address-item__radio:checked + .lumin-saved-address-item__card::before {
+  border-color: #c45c3e;
+  background: radial-gradient(circle at center, #c45c3e 0 5px, transparent 6px);
+}
+
+.lumin-saved-address-item__radio:focus-visible + .lumin-saved-address-item__card {
+  outline: 2px solid #c45c3e;
+  outline-offset: 2px;
+}
+
+.lumin-saved-address-item__line {
+  display: block;
+  font-size: 0.9rem;
+  color: #1a1a1a;
+}
+
+.lumin-saved-address-item__badges {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.75rem;
+  color: #777;
+}
+
+/* Prevent Lumin template .single-form / .radio-label rules from affecting saved-address cards */
+.lumin-checkout-address-picker .single-form,
+.lumin-checkout-address-picker .radio-label {
+  all: unset;
 }
 
 /* Template may force .badge display; honor hidden counts from lumin-count-sync.js */
@@ -1184,6 +1416,63 @@ body {
   font-size: 0.75rem;
 }
 
+.lumin-rating-stars--sm .lumin-rating-stars__star {
+  font-size: 0.8rem;
+}
+
+.lumin-rating-stars--interactive .lumin-rating-stars__btn {
+  border: none;
+  background: transparent;
+  padding: 0.1rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #ccc;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.lumin-rating-stars--interactive .lumin-rating-stars__btn.is-on,
+.lumin-rating-stars--interactive .lumin-rating-stars__btn:hover {
+  color: #c45c3e;
+}
+
+.lumin-rating-stars--interactive .lumin-rating-stars__btn:hover {
+  transform: scale(1.08);
+}
+
+.lumin-product-page .lumin-product-reviews-section {
+  margin-top: clamp(2rem, 4vw, 2.75rem);
+  padding-top: clamp(1.5rem, 3vw, 2rem);
+}
+
+.lumin-product-reviews-section .lumin-product-tabs .nav-link {
+  color: #494949;
+  font-weight: 600;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  padding-inline: 0;
+  margin-right: 1.5rem;
+}
+
+.lumin-product-reviews-section .lumin-product-tabs .nav-link.active {
+  color: #1a1a1a;
+  border-bottom-color: #1a1a1a;
+  background: transparent;
+}
+
+.lumin-review-card {
+  background: #faf8f5;
+}
+
+.lumin-order-review {
+  max-width: 100%;
+}
+
+.lumin-review-form textarea {
+  resize: vertical;
+  min-height: 5rem;
+}
+
 /* Checkout order summary: line item + thumbnail */
 .checkout-details__order-review .lumin-checkout-line {
   display: flex;
@@ -1211,6 +1500,20 @@ body {
 
 .checkout-details__order-review .lumin-checkout-line__thumb--empty {
   background: linear-gradient(135deg, #eee 0%, #e4e4e4 100%);
+}
+
+.lumin-checkout-loading {
+  display: inline-block;
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.checkout-section.lumin-checkout-pending .checkout-details__order-review tbody tr:not([data-lumin-placeholder]) {
+  display: none !important;
+}
+
+.checkout-section.lumin-checkout-pending .checkout-details__payment-method .accordion-item {
+  display: none !important;
 }
 
 .checkout-details__order-review .lumin-checkout-line__text {
@@ -1329,6 +1632,141 @@ body {
 /* Lumin template: remove “Follow us on” / “10% off when you sign up” strip above footer */
 .newsletter-section {
   display: none !important;
+}
+
+/* Site footer (React component) */
+.lumin-site-footer {
+  flex-shrink: 0;
+  margin-top: 0 !important;
+  background: #f6f5f3;
+  border-top: 1px solid #e5e2dd !important;
+}
+
+.lumin-site-footer .footer-main {
+  padding-top: 48px;
+  padding-bottom: 40px;
+  gap: 8px 24px;
+}
+
+.lumin-site-footer .footer-about {
+  padding-top: 0;
+  max-width: 300px;
+}
+
+.lumin-site-footer .footer-about p,
+.lumin-site-footer__tagline {
+  font-size: 15px !important;
+  line-height: 1.6 !important;
+  color: #5c5c5c !important;
+  margin-top: 12px;
+}
+
+.lumin-site-footer .footer-link__wrapper,
+.lumin-site-footer .footer-newsletter {
+  padding-top: 0;
+}
+
+.lumin-site-footer .footer-title {
+  margin-bottom: 4px;
+  color: #1c1c1c;
+}
+
+.lumin-site-footer .footer-link__list {
+  margin-top: 16px;
+}
+
+.lumin-site-footer .footer-link__list li a,
+.lumin-site-footer .footer-link__list li span {
+  white-space: normal;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.lumin-site-footer .footer-newsletter__form p {
+  font-size: 14px;
+  line-height: 1.55;
+  max-width: 320px;
+}
+
+.lumin-site-footer .footer-newsletter__input input {
+  background: #fff;
+  border-radius: 4px 0 0 4px;
+}
+
+.lumin-site-footer .footer-newsletter__input button {
+  border-radius: 0 4px 4px 0;
+  background: #fff;
+}
+
+.lumin-site-footer__social {
+  margin-top: 20px !important;
+}
+
+.lumin-site-footer__social a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid #e0ddd8;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.lumin-site-footer__social a:hover {
+  color: #363636;
+  border-color: #b8b4ad;
+}
+
+.lumin-site-footer .footer-copyright {
+  border-top-color: #e0ddd8;
+  height: auto;
+  min-height: 62px;
+  padding: 16px 0;
+}
+
+.lumin-site-footer .footer-copyright p {
+  font-size: 13px;
+  text-transform: none;
+}
+
+.lumin-site-footer__payments {
+  max-width: 100%;
+  height: auto;
+  opacity: 0.85;
+}
+
+@media (max-width: 991px) {
+  .lumin-site-footer .footer-col-1,
+  .lumin-site-footer .footer-col-2,
+  .lumin-site-footer .footer-col-3 {
+    width: 100%;
+  }
+
+  .lumin-site-footer .footer-about {
+    max-width: 100%;
+    margin-bottom: 8px;
+  }
+
+  .lumin-site-footer .footer-link > * {
+    width: 50%;
+  }
+}
+
+@media (max-width: 575px) {
+  .lumin-site-footer .footer-main {
+    padding-top: 36px;
+    padding-bottom: 28px;
+  }
+
+  .lumin-site-footer .footer-link > * {
+    width: 100%;
+  }
+
+  .lumin-site-footer .footer-link__wrapper + .footer-link__wrapper {
+    margin-top: 20px;
+  }
 }
 
 /*
@@ -2017,9 +2455,13 @@ body {
   width: 100%;
   max-width: 100%;
   height: auto;
-  max-height: min(52vh, 520px);
-  object-fit: cover;
+  max-height: min(85vh, 680px);
+  object-fit: contain;
   margin: 0 auto;
+}
+
+.lumin-page-content .lumin-blog-post-page .blog-single__image img {
+  object-fit: contain !important;
 }
 
 /* Products (/products): sidebar filters + grid/list */

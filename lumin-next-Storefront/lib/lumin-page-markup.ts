@@ -103,9 +103,44 @@ export async function getContactPageMarkup(): Promise<string> {
   return pageMarkup;
 }
 
+/** Remove HTTrack demo cart rows / payment blocks; checkout is filled from the live cart API. */
+export function injectCheckoutPageCleanup(markup: string): string {
+  let out = markup.replace(
+    'class="checkout-section section-padding-2"',
+    'class="checkout-section section-padding-2 lumin-checkout-pending"'
+  );
+
+  out = out.replace(
+    /(<div class="checkout-details__order-review">[\s\S]*?<tbody>)[\s\S]*?(<\/tbody>)/i,
+    `$1<tr data-lumin-placeholder="1"><td class="product-name" colspan="2"><span class="lumin-checkout-loading">Loading your cart…</span></td></tr>$2`
+  );
+
+  out = out.replace(
+    /(<tr class="cart-subtotal">[\s\S]*?<span>)[^<]*(<\/span>)/i,
+    "$1—$2"
+  );
+  out = out.replace(
+    /(<tr class="order-total">[\s\S]*?<span>)\s*[^<]*\s*(<\/span>)/i,
+    "$1—$2"
+  );
+
+  out = out.replace(
+    /(<tr class="cart-shipping">[\s\S]*?<td data-title="Shipping">)[\s\S]*?(<\/td>)/i,
+    `$1<span class="lumin-checkout-loading">Loading shipping options…</span>$2`
+  );
+
+  out = out.replace(
+    /(<div class="checkout-details__payment-method">\s*<div class="accordion" id="payment-method">)\s*<form action="#">[\s\S]*?<\/form>/i,
+    `$1<p class="lumin-checkout-loading mb-0">Loading payment options…</p>`
+  );
+
+  return out;
+}
+
 export async function getCheckoutPageMarkup(): Promise<string> {
   const html = await loadLuminTemplate("checkout.html");
   let pageMarkup = transformLuminTemplateMarkup(html);
+  pageMarkup = injectCheckoutPageCleanup(pageMarkup);
   pageMarkup = await finalizeLuminTemplateMarkup(pageMarkup);
   return pageMarkup;
 }

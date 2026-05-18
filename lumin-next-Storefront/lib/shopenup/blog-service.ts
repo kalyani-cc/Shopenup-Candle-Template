@@ -1,7 +1,9 @@
 import { sdk } from "@/lib/config";
 
-/** Matches store route `GET /store/custom/blog/articles` (published rows only). */
-const STORE_BLOG_ARTICLES_PATH = "/store/custom/blog/articles";
+/** Official blog plugin store route (returns a JSON array). */
+const STORE_BLOG_ARTICLES_PATH = "/store/blog/articles";
+/** Fallback custom route (returns `{ articles, count, … }`). */
+const STORE_BLOG_ARTICLES_CUSTOM_PATH = "/store/custom/blog/articles";
 
 export interface BlogArticle {
   id: string;
@@ -128,58 +130,102 @@ export class ShopenupBlogService {
     };
   }
 
-  private async fetchEnvelope(
-    limit: number,
-    offset: number,
-    slug?: string
-  ): Promise<BlogArticleListResponse> {
-    const query: Record<string, string | number> = { limit, offset };
-    if (slug) {
-      query.slug = slug;
+  private parseArticleListResponse(res: unknown): BlogArticle[] {
+    let rawList: unknown[] = [];
+    if (Array.isArray(res)) {
+      rawList = res;
+    } else if (res && typeof res === "object") {
+      const envelope = res as Partial<BlogArticleListResponse>;
+      if (Array.isArray(envelope.articles)) {
+        rawList = envelope.articles;
+      }
     }
+    return rawList.map((row) =>
+      this.withThumb(this.normalizeArticle(row as Partial<BlogArticle> & Record<string, unknown>))
+    );
+  }
 
-    const res = await sdk.client.fetch<
-      Partial<BlogArticleListResponse> & { articles?: unknown[] }
-    >(STORE_BLOG_ARTICLES_PATH, {
+  private async fetchFromStore(
+    path: string,
+    query: Record<string, string | number | boolean>
+  ): Promise<BlogArticle[]> {
+    const res = await sdk.client.fetch<unknown>(path, {
       query,
-      /* Avoid caching an empty list in dev while wiring backend / publish flags. */
       ...(process.env.NODE_ENV === "development"
         ? { cache: "no-store" as const }
         : { next: { revalidate: 120, tags: ["blog-articles"] } }),
     });
+    return this.parseArticleListResponse(res);
+  }
 
-    const rawList = Array.isArray(res?.articles) ? res!.articles : [];
-    const articles = rawList.map((row) =>
-      this.withThumb(this.normalizeArticle(row as Partial<BlogArticle> & Record<string, unknown>))
-    );
+  /**
+   * Blog plugin `GET /store/blog/articles` treats every query param as an entity filter.
+   * Do not pass `limit`, `offset`, or `draft` there — only use pagination on the custom route.
+   */
+  private async fetchAllArticles(): Promise<BlogArticle[]> {
+    try {
+      const fromPlugin = await this.fetchFromStore(STORE_BLOG_ARTICLES_PATH, {});
+      if (fromPlugin.length) {
+        return fromPlugin;
+      }
+    } catch (pluginErr) {
+      if (process.env.NODE_ENV === "development") {
+        console.warn("[blog-service] Plugin route failed, trying custom route:", pluginErr);
+      }
+    }
+
+    return this.fetchFromStore(STORE_BLOG_ARTICLES_CUSTOM_PATH, {
+      limit: 100,
+      offset: 0,
+    });
+  }
+
+  private applyListFilters(
+    articles: BlogArticle[],
+    opts: { slug?: string; draft?: boolean; limit: number; offset: number }
+  ): BlogArticle[] {
+    let list = articles;
+
+    if (opts.slug?.trim()) {
+      const key = opts.slug.trim().toLowerCase();
+      list = list.filter(
+        (a) =>
+          a.id === opts.slug ||
+          a.id.toLowerCase() === key ||
+          (a.url_slug || "").toLowerCase() === key
+      );
+    }
+
+    if (opts.draft === false) {
+      list = list.filter((a) => !a.draft);
+    } else if (opts.draft === true) {
+      list = list.filter((a) => a.draft);
+    }
+
+    return list.slice(opts.offset, opts.offset + opts.limit);
+  }
+
+  private async fetchEnvelope(
+    limit: number,
+    offset: number,
+    slug?: string,
+    draft?: boolean
+  ): Promise<BlogArticleListResponse> {
+    const all = await this.fetchAllArticles();
+    const articles = this.applyListFilters(all, { slug, draft, limit, offset });
 
     return {
       articles,
-      count: res?.count ?? articles.length,
-      offset: res?.offset ?? offset,
-      limit: res?.limit ?? limit,
+      count: articles.length,
+      offset,
+      limit,
     };
   }
 
-  /** Store API caps `limit` at 100; fetch multiple pages up to `maxItems`. */
+  /** Load up to `maxItems` articles (plugin list is unpaginated). */
   private async fetchPublishedPages(maxItems = 500): Promise<BlogArticle[]> {
-    const out: BlogArticle[] = [];
-    let offset = 0;
-    const pageSize = 100;
-
-    while (out.length < maxItems) {
-      const env = await this.fetchEnvelope(pageSize, offset);
-      if (!env.articles.length) {
-        break;
-      }
-      out.push(...env.articles);
-      if (env.articles.length < pageSize || out.length >= env.count) {
-        break;
-      }
-      offset += pageSize;
-    }
-
-    return out;
+    const all = await this.fetchAllArticles();
+    return all.slice(0, maxItems);
   }
 
   private sortArticles(
@@ -208,8 +254,8 @@ export class ShopenupBlogService {
     let list = articles;
 
     if (params?.draft === true) {
-      list = [];
-    } else {
+      list = list.filter((a) => a.draft);
+    } else if (params?.draft === false) {
       list = list.filter((a) => !a.draft);
     }
 
@@ -260,8 +306,8 @@ export class ShopenupBlogService {
 
       const limit = Math.min(params?.limit ?? 100, 100);
       const offset = params?.offset ?? 0;
-      const env = await this.fetchEnvelope(limit, offset);
-      return env.articles;
+      const env = await this.fetchEnvelope(limit, offset, undefined, params?.draft);
+      return this.filterArticles(env.articles, params);
     } catch (error) {
       console.error("Failed to get blog articles:", error);
       throw error;
@@ -269,21 +315,45 @@ export class ShopenupBlogService {
   }
 
   async getArticle(articleId: string): Promise<BlogArticle | null> {
-    try {
-      const env = await this.fetchEnvelope(5, 0, articleId.trim());
-      const row = env.articles[0];
-      return row ?? null;
-    } catch (error) {
-      console.error("Failed to get blog article:", error);
+    const id = articleId.trim();
+    if (!id) {
       return null;
     }
+    try {
+      const res = await sdk.client.fetch<unknown>(`${STORE_BLOG_ARTICLES_PATH}/${encodeURIComponent(id)}`, {
+        ...(process.env.NODE_ENV === "development"
+          ? { cache: "no-store" as const }
+          : { next: { revalidate: 120, tags: ["blog-articles"] } }),
+      });
+      if (res && typeof res === "object" && !Array.isArray(res)) {
+        return this.withThumb(
+          this.normalizeArticle(res as Partial<BlogArticle> & Record<string, unknown>)
+        );
+      }
+    } catch {
+      /* fall through to list lookup */
+    }
+
+    const all = await this.fetchPublishedPages(500);
+    return all.find((a) => a.id === id) ?? null;
   }
 
   async getArticleBySlug(slug: string): Promise<BlogArticle | null> {
+    const key = slug.trim().toLowerCase();
+    if (!key) {
+      return null;
+    }
     try {
-      const env = await this.fetchEnvelope(5, 0, slug.trim());
-      const row = env.articles[0];
-      return row ?? null;
+      const byId = await this.getArticle(slug.trim());
+      if (byId) {
+        return byId;
+      }
+      const all = await this.fetchPublishedPages(500);
+      return (
+        all.find((a) => (a.url_slug || "").toLowerCase() === key) ??
+        all.find((a) => a.id.toLowerCase() === key) ??
+        null
+      );
     } catch (error) {
       console.error("Failed to get blog article by slug:", error);
       return null;
@@ -312,10 +382,30 @@ export class ShopenupBlogService {
   }
 
   async getPublishedArticles(params?: BlogSearchParams): Promise<BlogArticle[]> {
-    return this.getArticles({
+    const published = await this.getArticles({
       ...params,
       draft: false,
     });
+    if (published.length > 0) {
+      return published;
+    }
+
+    if (process.env.NODE_ENV !== "development") {
+      return [];
+    }
+
+    const drafts = await this.getArticles({
+      ...params,
+      draft: true,
+      limit: params?.limit ?? 100,
+      offset: params?.offset ?? 0,
+    });
+    if (drafts.length > 0) {
+      console.warn(
+        "[blog-service] No published articles found. Showing draft articles in development — turn off Draft in admin to publish."
+      );
+    }
+    return drafts;
   }
 
   async getLatestArticles(limit = 10): Promise<BlogArticle[]> {

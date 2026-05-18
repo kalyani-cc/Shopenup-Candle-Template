@@ -4,6 +4,7 @@ import { AddToCartButton } from "@/components/ui/add-to-cart-button";
 import { FavouriteToggleButton } from "@/components/ui/favourite-toggle-button";
 import { StoreProductImage } from "@/components/store-product-image";
 import { ProductRatingRow } from "@/components/product-rating-display";
+import { ProductDetailReviews } from "@/components/product-reviews/product-detail-reviews";
 import { RelatedProductsSection } from "@/components/product-related-grid";
 import { getProductByHandle, getProductById, listRelatedProducts } from "@/lib/shopenup/product";
 import { formatCurrency } from "@/lib/utils";
@@ -116,8 +117,16 @@ export default async function ProductDetailPage({ params }: PageProps) {
               </div>
       
             </div>
+
+            {product.id ? (
+              <ProductDetailReviews
+                productId={product.id}
+                initialRating={product.rating}
+                initialReviewCount={product.reviewCount}
+              />
+            ) : null}
           </div>
-      
+
           {/* Related */}
           <div className="mt-5 pt-4 border-top">
             <RelatedProductsSection title={relatedTitle} products={related} />

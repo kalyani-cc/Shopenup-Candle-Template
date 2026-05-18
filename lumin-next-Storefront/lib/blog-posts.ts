@@ -122,6 +122,9 @@ export function normalizeBlogRow(raw: unknown): BlogPost | null {
     const id = pickStr(o, ["id", "uuid", "_id"]);
     slug = id ? String(id).replace(/\s+/g, "-").toLowerCase() : slugifyFromTitle(title);
   }
+  if (slug === "null" || slug === "undefined") {
+    slug = slugifyFromTitle(title);
+  }
 
   let date =
     pickStr(o, ["date", "published_at", "publishedAt", "created_at", "createdAt", "post_date"]) || "";

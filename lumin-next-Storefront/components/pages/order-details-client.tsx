@@ -10,6 +10,7 @@ import type { StoreCustomer } from "@/lib/types/store-customer";
 import { collectPromoCodesFromOrder } from "@/lib/shopenup/order-promo-codes";
 import { formatCurrency, formatOrderDisplayStatus } from "@/lib/utils";
 import InvoiceGenerator from "@/components/pages/invoice-generator";
+import { OrderProductReview } from "@/components/product-reviews/order-product-review";
 
 type Address = {
   first_name?: string | null;
@@ -278,8 +279,9 @@ export function OrderDetailsClient({ orderId }: OrderDetailsClientProps) {
                 return (
                   <li
                     key={item.id}
-                    className="d-flex align-items-center justify-content-between gap-3 py-3 px-2 px-sm-3 rounded lumin-order-line-item"
+                    className="d-flex flex-column gap-2 py-3 px-2 px-sm-3 rounded lumin-order-line-item"
                   >
+                    <div className="d-flex align-items-center justify-content-between gap-3 w-100">
                     <div className="d-flex align-items-center gap-3 min-w-0 flex-grow-1">
                       {image ? (
                         // eslint-disable-next-line @next/next/no-img-element -- remote product URLs vary by backend
@@ -308,6 +310,19 @@ export function OrderDetailsClient({ orderId }: OrderDetailsClientProps) {
                       </div>
                     </div>
                     <p className="mb-0 fw-semibold fs-5 flex-shrink-0">{formatCurrency(total)}</p>
+                    </div>
+                    {item.product_id ? (
+                      <OrderProductReview
+                        productId={item.product_id}
+                        productTitle={title}
+                        productThumbnail={image}
+                        customerId={customer.id}
+                        customerName={{
+                          firstName: customer.first_name || "Customer",
+                          lastName: customer.last_name || "User",
+                        }}
+                      />
+                    ) : null}
                   </li>
                 );
               })}

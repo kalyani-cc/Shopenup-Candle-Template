@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { BlogPostDescription } from "@/components/blog/blog-post-description";
 import { getBlogPostBySlug } from "@/lib/blog-posts";
 
 function safeImageUrl(raw: string | undefined): string {
@@ -57,20 +58,20 @@ export default async function BlogPostPage({ params }: PageProps) {
 
         <article className="blog-single lumin-blog-post-article">
           <div className="row align-items-start lumin-blog-post-media-row blog-single-wrapper gx-md-4 gy-4">
-            <div className="col-12 col-md-4 col-lg-3">
+            <div className="col-12 col-md-5 col-lg-5">
               <div className="blog-single__image lumin-blog-post-hero mb-0">
                 <img
                   className="lumin-blog-post-hero__img"
                   src={img}
                   alt={post.title}
-                  width={360}
-                  height={240}
+                  width={560}
+                  height={420}
                   loading="eager"
                   decoding="async"
                 />
               </div>
             </div>
-            <div className="col-12 col-md-8 col-lg-9">
+            <div className="col-12 col-md-7 col-lg-7">
               <header className="lumin-blog-post-header mb-3">
                 <ul className="blog-single__category justify-content-start mb-2">
                   <li>
@@ -89,11 +90,7 @@ export default async function BlogPostPage({ params }: PageProps) {
                   ) : null}
                 </ul>
               </header>
-              <div className="blog-single__content lumin-blog-post-prose mb-0">
-                {paragraphs.map((p, i) => (
-                  <p key={i}>{p}</p>
-                ))}
-              </div>
+              <BlogPostDescription paragraphs={paragraphs} />
               <p className="text-start mt-4 mb-0">
                 <Link href="/blog" className="btn btn-outline-dark">
                   ← All posts

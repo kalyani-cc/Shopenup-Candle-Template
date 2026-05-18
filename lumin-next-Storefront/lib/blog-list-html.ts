@@ -71,7 +71,7 @@ export function buildBlogListingItemsHtml(posts: BlogPost[]): string {
     return `
                     <article class="blog-item-2 lumin-blog-card lumin-blog-card--empty">
                         <div class="blog-item-2__content">
-                            <p class="blog-item-2__content--description mb-0">No posts yet. Blog data is fetched on the <strong>server</strong> (you will not see a request to the API host in the browser Network tab). Open <a href="/api/store-blog">/api/store-blog</a> to verify the connection, ensure articles are <strong>published</strong> (not draft) in admin, and check the Next.js terminal for <code>[blog-posts]</code> warnings.</p>
+                            <p class="blog-item-2__content--description mb-0">No blog posts to show. In admin, open Blog and turn off <strong>Draft</strong> for each article you want live. Check <a href="/api/store-blog">/api/store-blog</a> and your Next.js terminal for <code>[blog-posts]</code> messages.</p>
                         </div>
                     </article>`;
   }

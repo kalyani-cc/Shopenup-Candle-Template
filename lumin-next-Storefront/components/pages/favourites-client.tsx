@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { addToWishlist, listWishlistProducts, type FavouriteProduct } from "@/lib/shopenup/wishlist";
+import { TrashBinIcon } from "@/components/ui/trash-bin-icon";
 import { formatCurrency } from "@/lib/utils";
 
 type FavouritesClientProps = {
@@ -163,9 +164,23 @@ export function FavouritesClient({ initialAdd }: FavouritesClientProps) {
                       >
                         <i className="lastudioicon-shopping-cart-3" />
                       </button>
-                      <Link href="/products" aria-label="compare">
-                        <i className="lastudioicon-ic_compare_arrows_24px" />
-                      </Link>
+                      <button
+                        type="button"
+                        className="js-quick-add-wishlist bg-transparent border-0 p-0 lumin-wishlist-heart--active"
+                        data-variant-id={variantId}
+                        data-slug={slug}
+                        data-id={productId}
+                        data-name={rawName}
+                        data-price={numericPrice}
+                        data-image={image}
+                        data-category={categoryHandle}
+                        data-category-label={categoryLabel}
+                        data-description={description}
+                        aria-label="Remove from wishlist"
+                        title="Remove from wishlist"
+                      >
+                        <TrashBinIcon />
+                      </button>
                       <Link href={href} aria-label="zoom-in">
                         <i className="lastudioicon-search-zoom-in" />
                       </Link>
