@@ -68,9 +68,6 @@ export function HomeProductCard({ product, rootClassName = "single-product" }: H
           >
             <i className="lastudioicon-shopping-cart-3" />
           </button>
-          <Link href="/products" aria-label="compare">
-            <i className="lastudioicon-ic_compare_arrows_24px" />
-          </Link>
           <Link href={href} aria-label="zoom-in">
             <i className="lastudioicon-search-zoom-in" />
           </Link>

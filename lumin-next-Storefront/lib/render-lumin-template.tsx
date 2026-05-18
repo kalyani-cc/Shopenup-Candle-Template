@@ -210,6 +210,8 @@ export function transformLuminTemplateMarkup(markup: string): string {
           .replace(/href=["']([^"'#?:]+\.html)["']/gi, (_m, fileName: string) => {
             return `href="${htmlToRoutePath(fileName)}"`;
           })
+          /* Demo newsletter strip above template footer — footer newsletter is in SiteFooter. */
+          .replace(/<!--\s*Newsletter Start\s*-->[\s\S]*?<!--\s*Newsletter End\s*-->\s*/gi, "")
           /* Use Next footer component globally; remove template footer from mirrored HTML. */
           .replace(/<!--\s*Footer Start\s*-->[\s\S]*?<!--\s*Footer End\s*-->/i, "")
           .replace(/<footer class="footer-section[\s\S]*?<\/footer>/i, "")

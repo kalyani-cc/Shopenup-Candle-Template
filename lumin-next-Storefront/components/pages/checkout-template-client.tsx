@@ -13,6 +13,9 @@ import {
   type StoreCart
 } from "@/lib/shopenup/cart";
 import { formatCurrency } from "@/lib/utils";
+import { getAuthHeadersClient } from "@/lib/shopenup/client-cookies";
+import { getCustomerClient, listCustomerAddressesClient } from "@/lib/shopenup/customer";
+import type { StoreCustomerAddress } from "@/lib/types/store-customer";
 
 const COUNTRY_OPTIONS = [
   { code: "in", label: "India" },
@@ -236,6 +239,68 @@ function forceNativeSelect(select: HTMLSelectElement | null) {
   select.style.width = "100%";
 }
 
+function formatAddressOptionLabel(addr: StoreCustomerAddress): string {
+  const name = [addr.first_name, addr.last_name].filter(Boolean).join(" ").trim();
+  const line = [addr.address_1, addr.city, addr.postal_code].filter(Boolean).join(", ");
+  return [name, line].filter(Boolean).join(" — ");
+}
+
+function setStreetInputs(root: ParentNode, address1: string, address2: string) {
+  const labels = Array.from(root.querySelectorAll("label.single-form__label"));
+  const streetLabel = labels.find((l) => (l.textContent || "").toLowerCase().includes("street"));
+  const inputs = streetLabel?.parentElement?.querySelectorAll("input.single-form__input");
+  if (inputs?.[0]) (inputs[0] as HTMLInputElement).value = address1;
+  if (inputs?.[1]) (inputs[1] as HTMLInputElement).value = address2;
+}
+
+function setBillingFormFromAddress(
+  root: ParentNode,
+  addr: StoreCustomerAddress,
+  ctx: {
+    countrySelect: HTMLSelectElement | null;
+    populateStateOptions: (countryCode: string) => void;
+    getStateSelect: () => HTMLSelectElement | null;
+    customerEmail?: string;
+  }
+) {
+  const setVal = (labelParts: string[], value: string) => {
+    const input = getInputByAnyLabel(root, labelParts);
+    if (input) input.value = value;
+  };
+
+  setVal(["first name"], addr.first_name || "");
+  setVal(["last name"], addr.last_name || "");
+  setVal(["company name", "company"], addr.company || "");
+  setStreetInputs(root, addr.address_1 || "", addr.address_2 || "");
+  setVal(["city", "town / city", "suburb"], addr.city || "");
+  setVal(["postcode", "post code", "postal"], addr.postal_code || "");
+  setVal(["phone"], addr.phone || "");
+  if (ctx.customerEmail) {
+    const emailInput = getInputByLabel(root, "email");
+    if (emailInput) emailInput.value = ctx.customerEmail;
+  }
+
+  const code = (addr.country_code || "in").toLowerCase();
+  if (ctx.countrySelect) {
+    const hasOption = Array.from(ctx.countrySelect.options).some((o) => o.value === code);
+    if (hasOption) {
+      ctx.countrySelect.value = code;
+    }
+    ctx.populateStateOptions(ctx.countrySelect.value || code);
+  } else {
+    ctx.populateStateOptions(code);
+  }
+
+  const stateEl = ctx.getStateSelect();
+  if (stateEl && addr.province) {
+    const province = addr.province.trim();
+    const match = Array.from(stateEl.options).find(
+      (o) => o.value === province || o.textContent?.toLowerCase() === province.toLowerCase()
+    );
+    stateEl.value = match?.value || province;
+  }
+}
+
 export function CheckoutTemplateClient() {
   useEffect(() => {
     const checkoutRoot = document.querySelector(".checkout-section");
@@ -307,11 +372,19 @@ export function CheckoutTemplateClient() {
       return;
     }
 
+    checkoutRoot.classList.add("lumin-checkout-pending");
+
     // From here down, these are guaranteed.
     const tbodyEl = tbody;
     const shippingCellEl = shippingCell;
     const paymentWrapEl = paymentWrap;
     const placeOrderBtnEl = placeOrderBtn;
+
+    tbodyEl.innerHTML = `<tr data-lumin-placeholder="1"><td class="product-name" colspan="2"><span class="lumin-checkout-loading">Loading your cart…</span></td></tr>`;
+    setText(subtotalCell, "—");
+    setText(totalCell, "—");
+    shippingCellEl.innerHTML = `<span class="lumin-checkout-loading">Loading shipping options…</span>`;
+    paymentWrapEl.innerHTML = `<p class="lumin-checkout-loading mb-0">Loading payment options…</p>`;
 
     const status = document.createElement("p");
     status.style.marginTop = "12px";
@@ -483,6 +556,17 @@ export function CheckoutTemplateClient() {
     };
 
     const billingRoot = checkoutRoot.querySelector(".checkout-details__billing") as ParentNode;
+    billingRoot.querySelectorAll("#lumin-checkout-address-picker").forEach((node) => node.remove());
+
+    const addressPickerEl = document.createElement("div");
+    addressPickerEl.id = "lumin-checkout-address-picker";
+    addressPickerEl.className = "lumin-checkout-address-picker";
+    addressPickerEl.style.display = "none";
+    billingRoot.insertBefore(addressPickerEl, billingRoot.firstChild);
+
+    let savedAddresses: StoreCustomerAddress[] = [];
+    let selectedSavedAddressId: string | "__new__" | null = null;
+
     const countrySelect =
       getSelectByLabel(billingRoot, "country") ||
       ((billingRoot.querySelector("select.single-form__select") as HTMLSelectElement | null) || null);
@@ -513,7 +597,7 @@ export function CheckoutTemplateClient() {
         return select;
       }
 
-      const cityInput = getInputByAnyLabel(billingRoot, ["town / city", "city", "suburb"]);
+      const cityInput = getInputByAnyLabel(billingRoot, ["city", "town / city", "suburb"]);
       const cityForm = cityInput?.closest(".single-form");
       if (!cityForm?.parentElement) {
         return null;
@@ -554,20 +638,138 @@ export function CheckoutTemplateClient() {
       populateStateOptions("in");
     }
 
+    const getStateSelectEl = () =>
+      stateSelect ||
+      (billingRoot.querySelector("#lumin-checkout-state") as HTMLSelectElement | null) ||
+      getSelectByLabel(billingRoot, "state") ||
+      getSelectByLabel(billingRoot, "province");
+
+    const addressFormCtx = () => ({
+      countrySelect: countrySelect as HTMLSelectElement | null,
+      populateStateOptions,
+      getStateSelect: getStateSelectEl,
+      customerEmail: undefined as string | undefined,
+    });
+
+    const renderSavedAddressPicker = (customerEmail?: string) => {
+      if (!savedAddresses.length) {
+        addressPickerEl.style.display = "none";
+        addressPickerEl.innerHTML = "";
+        return;
+      }
+
+      addressPickerEl.style.display = "block";
+      const defaultAddr =
+        savedAddresses.find((a) => a.is_default_billing) ||
+        savedAddresses.find((a) => a.is_default_shipping) ||
+        savedAddresses[0];
+      if (!selectedSavedAddressId && defaultAddr) {
+        selectedSavedAddressId = defaultAddr.id;
+      }
+
+      const items = savedAddresses
+        .map((addr) => {
+          const checked = selectedSavedAddressId === addr.id ? "checked" : "";
+          const badges = [
+            addr.is_default_billing ? "Billing" : "",
+            addr.is_default_shipping ? "Shipping" : "",
+          ]
+            .filter(Boolean)
+            .join(" · ");
+          return `<li class="lumin-saved-address-item">
+            <input type="radio" class="lumin-saved-address-item__radio" name="luminSavedAddress" id="lumin-addr-${escapeAttr(addr.id)}" value="${escapeAttr(addr.id)}" ${checked} />
+            <label class="lumin-saved-address-item__card" for="lumin-addr-${escapeAttr(addr.id)}">
+              <span class="lumin-saved-address-item__line">${escapeHtml(formatAddressOptionLabel(addr))}</span>${
+                badges
+                  ? `<span class="lumin-saved-address-item__badges">${escapeHtml(badges)}</span>`
+                  : ""
+              }
+            </label>
+          </li>`;
+        })
+        .join("");
+
+      const newChecked = selectedSavedAddressId === "__new__" ? "checked" : "";
+      addressPickerEl.innerHTML = `<div class="lumin-checkout-address-picker__inner">
+        <p class="lumin-checkout-address-picker__title">Select a saved address</p>
+        <ul class="lumin-checkout-address-picker__list">${items}
+          <li class="lumin-saved-address-item">
+            <input type="radio" class="lumin-saved-address-item__radio" name="luminSavedAddress" id="lumin-addr-new" value="__new__" ${newChecked} />
+            <label class="lumin-saved-address-item__card" for="lumin-addr-new">
+              <span class="lumin-saved-address-item__line">Enter a new address</span>
+            </label>
+          </li>
+        </ul>
+        <p class="lumin-checkout-address-picker__footer">
+          <a href="/profile">Add or manage addresses</a>
+        </p>
+      </div>`;
+
+      addressPickerEl.querySelectorAll('input[name="luminSavedAddress"]').forEach((radio) => {
+        radio.addEventListener("change", (event) => {
+          const target = event.currentTarget as HTMLInputElement;
+          if (!target.checked) return;
+          selectedSavedAddressId = target.value as string;
+          if (selectedSavedAddressId === "__new__") {
+            return;
+          }
+          const addr = savedAddresses.find((a) => a.id === selectedSavedAddressId);
+          if (addr) {
+            setBillingFormFromAddress(billingRoot, addr, {
+              ...addressFormCtx(),
+              customerEmail,
+            });
+          }
+        });
+      });
+
+      if (selectedSavedAddressId && selectedSavedAddressId !== "__new__") {
+        const addr = savedAddresses.find((a) => a.id === selectedSavedAddressId);
+        if (addr) {
+          setBillingFormFromAddress(billingRoot, addr, {
+            ...addressFormCtx(),
+            customerEmail,
+          });
+        }
+      }
+    };
+
+    const markCheckoutHydrated = () => {
+      checkoutRoot.classList.remove("lumin-checkout-pending");
+      checkoutRoot.classList.add("lumin-checkout-hydrated");
+    };
+
     const load = async () => {
       try {
         const cart = await retrieveCart();
         renderCart(cart);
         if (!cart?.items?.length) {
           status.textContent = "Your cart is empty. Add products before checkout.";
+          markCheckoutHydrated();
           return;
         }
+
+        if ("authorization" in getAuthHeadersClient()) {
+          const [addresses, customer] = await Promise.all([
+            listCustomerAddressesClient(),
+            getCustomerClient(),
+          ]);
+          savedAddresses = addresses;
+          const customerEmail = customer?.email || undefined;
+          renderSavedAddressPicker(customerEmail);
+        } else {
+          savedAddresses = [];
+          renderSavedAddressPicker();
+        }
+
         shippingOptions = await listShippingOptions();
         renderShipping();
         paymentProviders = await listPaymentProviders(cart.region_id);
         renderPayments();
+        markCheckoutHydrated();
       } catch (e) {
         status.textContent = e instanceof Error ? e.message : "Failed to load checkout.";
+        markCheckoutHydrated();
       }
     };
 
@@ -609,7 +811,7 @@ export function CheckoutTemplateClient() {
         const lastName = getInputByAnyLabel(billingRoot, ["last name"])?.value?.trim() || "";
         const address = getInputByAnyLabel(billingRoot, ["street address", "address"])?.value?.trim() || "";
         const city =
-          getInputByAnyLabel(billingRoot, ["town / city", "city", "suburb"])?.value?.trim() || "";
+          getInputByAnyLabel(billingRoot, ["city", "town / city", "suburb"])?.value?.trim() || "";
         const postal = getInputByAnyLabel(billingRoot, ["post code", "postcode", "postal"])?.value?.trim() || "";
         const phone = getInputByLabel(billingRoot, "phone")?.value?.trim() || "";
         const email = getInputByLabel(billingRoot, "email")?.value?.trim() || "";
@@ -730,6 +932,7 @@ export function CheckoutTemplateClient() {
     couponApplyBtn?.addEventListener("click", onCouponApply);
 
     return () => {
+      addressPickerEl.remove();
       placeOrderBtnEl.removeEventListener("click", onPlaceOrder);
       couponApplyBtn?.removeEventListener("click", onCouponApply);
     };

@@ -17,6 +17,118 @@ export type SignupInput = LoginInput & {
   phone?: string;
 };
 
+function normalizeAddressPayload(input: CustomerAddressInput): Record<string, unknown> {
+  return {
+    first_name: input.first_name.trim(),
+    last_name: input.last_name.trim(),
+    company: input.company?.trim() || undefined,
+    address_1: input.address_1.trim(),
+    address_2: input.address_2?.trim() || undefined,
+    city: input.city.trim(),
+    postal_code: input.postal_code.trim(),
+    province: input.province?.trim() || undefined,
+    country_code: input.country_code.trim().toLowerCase(),
+    phone: input.phone?.trim() || undefined,
+    ...(input.is_default_billing != null ? { is_default_billing: input.is_default_billing } : {}),
+    ...(input.is_default_shipping != null ? { is_default_shipping: input.is_default_shipping } : {}),
+  };
+}
+
+export async function createCustomerAddressClient(
+  input: CustomerAddressInput
+): Promise<{ ok: true; address: StoreCustomerAddress } | { ok: false; error: string }> {
+  if (!("authorization" in getAuthHeadersClient())) {
+    return { ok: false, error: "Sign in to save an address." };
+  }
+  try {
+    const res = await sdk.client.fetch<{ address: StoreCustomerAddress }>("/store/customers/me/addresses", {
+      method: "POST",
+      headers: getCompleteHeadersClient(),
+      body: normalizeAddressPayload(input),
+      cache: "no-store",
+    });
+    if (!res?.address?.id) {
+      return { ok: false, error: "Address was not saved." };
+    }
+    return { ok: true, address: res.address };
+  } catch (e) {
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : "Failed to save address.",
+    };
+  }
+}
+
+export async function updateCustomerAddressClient(
+  addressId: string,
+  input: Partial<CustomerAddressInput>
+): Promise<{ ok: true; address: StoreCustomerAddress } | { ok: false; error: string }> {
+  if (!addressId) {
+    return { ok: false, error: "Invalid address." };
+  }
+  if (!("authorization" in getAuthHeadersClient())) {
+    return { ok: false, error: "Sign in to update an address." };
+  }
+  try {
+    const body: Record<string, unknown> = {};
+    if (input.first_name != null) body.first_name = input.first_name.trim();
+    if (input.last_name != null) body.last_name = input.last_name.trim();
+    if (input.company !== undefined) body.company = input.company?.trim() || undefined;
+    if (input.address_1 != null) body.address_1 = input.address_1.trim();
+    if (input.address_2 !== undefined) body.address_2 = input.address_2?.trim() || undefined;
+    if (input.city != null) body.city = input.city.trim();
+    if (input.postal_code != null) body.postal_code = input.postal_code.trim();
+    if (input.province !== undefined) body.province = input.province?.trim() || undefined;
+    if (input.country_code != null) body.country_code = input.country_code.trim().toLowerCase();
+    if (input.phone !== undefined) body.phone = input.phone?.trim() || undefined;
+    if (input.is_default_billing != null) body.is_default_billing = input.is_default_billing;
+    if (input.is_default_shipping != null) body.is_default_shipping = input.is_default_shipping;
+
+    const res = await sdk.client.fetch<{ address: StoreCustomerAddress }>(
+      `/store/customers/me/addresses/${addressId}`,
+      {
+        method: "POST",
+        headers: getCompleteHeadersClient(),
+        body,
+        cache: "no-store",
+      }
+    );
+    if (!res?.address?.id) {
+      return { ok: false, error: "Address was not updated." };
+    }
+    return { ok: true, address: res.address };
+  } catch (e) {
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : "Failed to update address.",
+    };
+  }
+}
+
+export async function deleteCustomerAddressClient(
+  addressId: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!addressId) {
+    return { ok: false, error: "Invalid address." };
+  }
+  if (!("authorization" in getAuthHeadersClient())) {
+    return { ok: false, error: "Sign in to delete an address." };
+  }
+  try {
+    await sdk.client.fetch(`/store/customers/me/addresses/${addressId}`, {
+      method: "DELETE",
+      headers: getCompleteHeadersClient(),
+      cache: "no-store",
+    });
+    return { ok: true };
+  } catch (e) {
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : "Failed to delete address.",
+    };
+  }
+}
+
 export async function getCustomerClient(): Promise<StoreCustomer | null> {
   return sdk.client
     .fetch<{ customer: StoreCustomer }>("/store/customers/me", {
@@ -28,6 +140,21 @@ export async function getCustomerClient(): Promise<StoreCustomer | null> {
 }
 
 /** Saved addresses for the signed-in customer (empty if unauthenticated or none saved). */
+export type CustomerAddressInput = {
+  first_name: string;
+  last_name: string;
+  company?: string | null;
+  address_1: string;
+  address_2?: string | null;
+  city: string;
+  postal_code: string;
+  province?: string | null;
+  country_code: string;
+  phone?: string | null;
+  is_default_billing?: boolean;
+  is_default_shipping?: boolean;
+};
+
 export async function listCustomerAddressesClient(): Promise<StoreCustomerAddress[]> {
   if (!("authorization" in getAuthHeadersClient())) {
     return [];
