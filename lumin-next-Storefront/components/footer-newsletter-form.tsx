@@ -36,19 +36,25 @@ export function FooterNewsletterForm() {
   };
 
   return (
-    <form onSubmit={onSubmit} className="d-flex flex-column gap-2" noValidate>
-      <input
-        type="email"
-        placeholder="Email address..."
-        className="form-control bg-dark text-white border-secondary"
-        aria-label="Email address"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-      <button type="submit" className="btn btn-outline-light align-self-start" disabled={submitting}>
-        {submitting ? "Subscribing..." : "Subscribe"}
-      </button>
-    </form>
+    <div className="footer-newsletter__form">
+      <p>
+        Enter your email below to be the first to know about new collections and product launches.
+      </p>
+      <form onSubmit={onSubmit} noValidate>
+        <div className="footer-newsletter__input">
+          <input
+            type="email"
+            placeholder="Email address..."
+            aria-label="Email address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <button type="submit" disabled={submitting}>
+            {submitting ? "..." : "Subscribe"}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }

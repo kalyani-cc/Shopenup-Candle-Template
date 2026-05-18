@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 /** About page body (navbar + footer come from `app/layout.tsx`). */
@@ -22,10 +23,11 @@ export function AboutPageContent() {
       <div className="about-section-2 section-padding">
         <div className="container-fluid custom-container">
           <div className="about-title text-center js-scroll ShortFadeInUp scrolled">
-            <h2 className="about-title__title">Handcrafted with care</h2>
+            <h2 className="about-title__title">Our Passion for Fragrance</h2>
             <p>
-              We pour small-batch candles with clean ingredients and timeless design—made to warm your
-              home and elevate everyday moments.
+              At Lumin, we believe that a candle is more than just a light source; it&apos;s an
+              experience. Each of our candles is hand-poured with love, using premium soy wax and
+              curated fragrances to transform your space into a sanctuary.
             </p>
           </div>
 
@@ -36,20 +38,20 @@ export function AboutPageContent() {
                   <div className="about-item__top--image">
                     <img
                       src="/assets/images/about/about-img-1.jpg"
-                      alt="Studio"
+                      alt="Artisan crafted"
                       width={391}
                       height={510}
                       loading="lazy"
                       decoding="async"
                     />
                   </div>
-                  <h3 className="about-item__top--title">Small batches</h3>
+                  <h3 className="about-item__top--title">Artisan Crafted</h3>
                 </div>
                 <div className="about-item__bottom">
                   <div className="about-item__bottom--count">01</div>
                   <p className="about-item__bottom--description">
-                    Each candle is mixed and poured by hand so fragrance stays true from first light to
-                    last.
+                    Every candle is crafted in small batches to ensure the highest quality and
+                    attention to detail in every pour.
                   </p>
                 </div>
               </div>
@@ -61,20 +63,20 @@ export function AboutPageContent() {
                   <div className="about-item__top--image">
                     <img
                       src="/assets/images/about/about-img-2.jpg"
-                      alt="Materials"
+                      alt="Natural ingredients"
                       width={391}
                       height={510}
                       loading="lazy"
                       decoding="async"
                     />
                   </div>
-                  <h3 className="about-item__top--title">Clean materials</h3>
+                  <h3 className="about-item__top--title">Natural Ingredients</h3>
                 </div>
                 <div className="about-item__bottom">
                   <div className="about-item__bottom--count">02</div>
                   <p className="about-item__bottom--description">
-                    Thoughtfully chosen waxes and wicks for a steadier burn and a softer glow in your
-                    space.
+                    We use 100% natural soy wax and lead-free cotton wicks for a clean, eco-friendly
+                    burn that is safe for your home.
                   </p>
                 </div>
               </div>
@@ -86,19 +88,20 @@ export function AboutPageContent() {
                   <div className="about-item__top--image">
                     <img
                       src="/assets/images/about/about-img-3.jpg"
-                      alt="Packaging"
+                      alt="Long lasting"
                       width={391}
                       height={510}
                       loading="lazy"
                       decoding="async"
                     />
                   </div>
-                  <h3 className="about-item__top--title">Designed for home</h3>
+                  <h3 className="about-item__top--title">Long Lasting</h3>
                 </div>
                 <div className="about-item__bottom">
                   <div className="about-item__bottom--count">03</div>
                   <p className="about-item__bottom--description">
-                    Vessels and labels made to sit beautifully on a shelf, side table, or mantle.
+                    Our candles are designed to provide a slow, even burn, allowing you to enjoy your
+                    favorite scents for even longer.
                   </p>
                 </div>
               </div>
@@ -107,13 +110,51 @@ export function AboutPageContent() {
         </div>
       </div>
 
+      <div className="lumin-about-story section-padding">
+        <div className="container-fluid custom-container">
+          <div className="row align-items-center g-4 g-lg-5">
+            <div className="col-lg-6">
+              <div className="lumin-about-story__image js-scroll ShortFadeInUp scrolled">
+                <Image
+                  src="/assets/images/about/about-story.jpg"
+                  alt="Our story"
+                  width={700}
+                  height={800}
+                  className="img-fluid w-100 h-auto"
+                  loading="lazy"
+                />
+              </div>
+            </div>
+            <div className="col-lg-6">
+              <div className="lumin-about-story__content js-scroll ShortFadeInUp scrolled">
+                <h2 className="lumin-about-story__title">The Lumin Journey</h2>
+                <p>
+                  Founded in 2020, Lumin began with a simple mission: to create candles that are as
+                  kind to the planet as they are to your home. What started as a hobby in a small
+                  kitchen has grown into a dedicated workshop of artisans passionate about the art of
+                  fragrance.
+                </p>
+                <p>
+                  We source only the finest sustainable materials, from our natural soy wax to our
+                  lead-free cotton wicks. Every scent is carefully curated to evoke a memory, a
+                  feeling, or a moment of peace in your busy day.
+                </p>
+                <Link href="/products" className="btn btn-dark btn-hover-primary">
+                  Discover More
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div
         className="about-video lumin-about-video js-scroll ShortFadeInUp scrolled"
-        style={{ backgroundImage: "url(/assets/images/about-bg-1.jpg)" }}
+        style={{ backgroundImage: "url(/assets/images/about/about-bg-1.jpg)" }}
       >
         <div className="container-fluid custom-container">
           <div className="about-video__content js-scroll ShortFadeInUp scrolled">
-            <h3 className="about-video__title">Breathing life into ideas</h3>
+            <h3 className="about-video__title">Capturing Moments in a Jar</h3>
             <a
               className="about-video__play glightbox"
               href="https://www.youtube.com/watch?v=haoQM8kCM6U"
@@ -135,7 +176,7 @@ export function AboutPageContent() {
       <div className="testimonial-section-2 section-padding">
         <div className="container-fluid custom-container">
           <div className="section-title-3 text-center js-scroll ShortFadeInUp scrolled">
-            <h3 className="section-title-3__title">Testimonial</h3>
+            <h3 className="section-title-3__title">Testimonials</h3>
           </div>
 
           <div className="testimonial-active testimonial-wrapper js-scroll ShortFadeInUp scrolled">
@@ -143,10 +184,10 @@ export function AboutPageContent() {
               <div className="swiper-wrapper">
                 <div className="swiper-slide">
                   <div className="testimonial-item text-center">
-                    <div className="testimonial-item__title">Fragrance &amp; burn</div>
+                    <div className="testimonial-item__title">Amazing Scents</div>
                     <p className="testimonial-item__description">
-                      “Beautiful scent that fills the room without feeling heavy. The burn is even every
-                      time.”
+                      &ldquo;The fragrance is absolutely incredible and fills the whole room without
+                      being overwhelming. Best candles I&apos;ve ever bought!&rdquo;
                     </p>
                     <div className="testimonial-item__author">
                       <img
@@ -163,10 +204,10 @@ export function AboutPageContent() {
                 </div>
                 <div className="swiper-slide">
                   <div className="testimonial-item text-center">
-                    <div className="testimonial-item__title">Packaging</div>
+                    <div className="testimonial-item__title">Beautiful Packaging</div>
                     <p className="testimonial-item__description">
-                      “Looks gorgeous on my coffee table. Gifting these has become my go-to for
-                      housewarmings.”
+                      &ldquo;Not only do they smell heavenly, but the packaging is so elegant. They
+                      make the perfect gift for any occasion.&rdquo;
                     </p>
                     <div className="testimonial-item__author">
                       <img
@@ -195,6 +236,11 @@ export function AboutPageContent() {
       </div>
 
       <div className="instagram-section lumin-about-instagram overflow-hidden">
+        <div className="container-fluid custom-container text-center mb-3 mb-md-4">
+          <h2 className="lumin-about-instagram__heading js-scroll ShortFadeInUp scrolled">
+            Follow Our Story @Lumin
+          </h2>
+        </div>
         <div className="lumin-about-instagram__row">
           {[
             "about-instagram-1.jpg",
